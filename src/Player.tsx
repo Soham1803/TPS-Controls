@@ -7,7 +7,7 @@ import * as THREE from 'three'
 import type { JSX } from 'react'
 import React, { useEffect, useRef } from 'react'
 import { useFrame, useGraph } from '@react-three/fiber'
-import { useGLTF, useKeyboardControls, useFBX } from '@react-three/drei'
+import { useGLTF, useKeyboardControls, useFBX, PositionalAudio } from '@react-three/drei'
 import type { GLTF } from 'three-stdlib'
 import { SkeletonUtils } from 'three-stdlib'
 import { CapsuleCollider, RapierRigidBody, RigidBody, useRapier } from '@react-three/rapier'
@@ -18,6 +18,7 @@ import RAPIER from '@dimforge/rapier3d-compat'
 const MOVE_SPEED = 2;
 const RUN_MULTIPLIER = 2;
 const MOUSE_SENSITIVITY = 0.002;
+const SHOOT_RAY_OFFSET = 0.5; // Offset from player to avoid self-collision
 
 // const frontVector = new THREE.Vector3();
 // const sideVector = new THREE.Vector3();
@@ -48,7 +49,12 @@ type GLTFResult = GLTF & {
   animations: GLTFAction[]
 }
 
-export function Player(props: JSX.IntrinsicElements['group']) {
+// Add this interface above the Player component
+interface PlayerProps extends React.ComponentProps<'group'> {
+}
+
+// Modify the Player component signature
+export function Player({...props }: PlayerProps) {
   const group = React.useRef<THREE.Group>(null)
   const mouseRotationRef = React.useRef({x: 0, y: 0});
   const { scene } = useGLTF('/models/player.glb') as unknown as GLTFResult
@@ -59,6 +65,10 @@ export function Player(props: JSX.IntrinsicElements['group']) {
   const [wait, setWait] = React.useState(false);
   const [isJumping, setIsJumping] = React.useState(false); // Add jump state
   const jumpPressedRef = useRef(false); // Track jump key state
+  const shoot = useRef<boolean>(false); // Track shoot state
+  const shotSfxRef = useRef<THREE.PositionalAudio>(null);
+  // const [arrowPosition, setArrowPosition] = useState(new THREE.Vector3());
+  // const [arrowDirection, setArrowDirection] = useState(new THREE.Vector3());
   let actionAssigned;
 
   // Import animation from FBX
@@ -151,15 +161,31 @@ export function Player(props: JSX.IntrinsicElements['group']) {
         document.exitPointerLock();
       }
     }
+
+    const handleMouseDown = (e: MouseEvent) => {
+      shotSfxRef.current?.play();
+      if (!shoot.current && e.button === 0) { // Left mouse button
+        shoot.current = true;
+
+        setTimeout(() => {
+          shoot.current = false;
+          console.log("Time: ", Date.now());
+        }
+        , 100); // Reset shoot after 100ms
+      }
+    }
+      
   
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('click', handleCanvasClick);
     document.addEventListener('keydown', handleEscapeHit);
+    document.addEventListener('mousedown', handleMouseDown);
 
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('click', handleCanvasClick);
       document.removeEventListener('keydown', handleEscapeHit);
+      document.removeEventListener('mousedown', handleMouseDown);
     }
 
   })
@@ -173,6 +199,10 @@ export function Player(props: JSX.IntrinsicElements['group']) {
   // Add smoothing references
   const smoothedPlayerPosition = useRef(new THREE.Vector3());
   const smoothedCameraPosition = useRef(new THREE.Vector3());
+
+  const shootRayDirection = useRef(new THREE.Vector3());
+
+  const dotRef = useRef<THREE.Mesh>(null);
 
   const rapier = useRapier();
 
@@ -286,7 +316,16 @@ export function Player(props: JSX.IntrinsicElements['group']) {
       conCurr.translation().z
     );
 
+    // shotSfxRef.current?.translateX(conCurr.translation().x/100);
+    // shotSfxRef.current?.translateY(conCurr.translation().y + 1.55);
+    // shotSfxRef.current?.translateZ(conCurr.translation().z/100);
+
     smoothedPlayerPosition.current.lerp(currentPlayerPos, 0.15);
+
+    // const positionHelper = new PositionalAudioHelper(shotSfxRef.current!, 10);
+    // positionHelper.update();
+    // positionHelper.scale.set(10, 10, 10);
+    // shotSfxRef.current?.add(positionHelper);
 
     // Camera positioning - behind and above the player
     const cameraDistance = 4 * Math.sin(pitch) + 3; // Adjust camera distance based on pitch
@@ -304,7 +343,7 @@ export function Player(props: JSX.IntrinsicElements['group']) {
 
     const targetCameraPos = new THREE.Vector3(
       smoothedPlayerPosition.current.x + cameraOffset.x,
-      smoothedPlayerPosition.current.y + cameraOffset.y - 1.55, // Subtract the offset we added
+      smoothedPlayerPosition.current.y + cameraOffset.y - 1.6, // Subtract the offset we added
       smoothedPlayerPosition.current.z + cameraOffset.z
     );
 
@@ -312,20 +351,64 @@ export function Player(props: JSX.IntrinsicElements['group']) {
     state.camera.position.copy(smoothedCameraPosition.current);
 
     // Camera rotation - look at player with pitch adjustment
-    state.camera.lookAt(smoothedPlayerPosition.current);
+    state.camera.lookAt(smoothedPlayerPosition.current.clone().add(new THREE.Vector3(0, 0.5, 0)));
 
     // Spine2 rotation for gun aiming
     const spineRotationAxis = new THREE.Vector3(1, 0, -0.5); 
     bones[3].rotation.set(0, 0, 0);
     bones[3].rotateOnAxis(spineRotationAxis, pitch * 0.7);
 
-    // Implement shoot
-    const shootRay = world.castRay(new RAPIER.Ray(currentPlayerPos, smoothedPlayerPosition.current), 100, false)
-    if (shootRay && shootRay.collider && shootRay.collider.isSensor()) {
-      console.log('Hit sensor:', shootRay.collider);
-      // Handle shooting logic here, e.g., apply damage to the hit object
-    }
+    const newDirection = state.camera.getWorldDirection(new THREE.Vector3());
+    shootRayDirection.current = newDirection;
+    // setArrowDirection(newDirection);
 
+    const rayOrigin = new THREE.Vector3()
+      .copy(smoothedPlayerPosition.current)
+      .add(new THREE.Vector3(
+        shootRayDirection.current.x * SHOOT_RAY_OFFSET,
+        0.5, // Offset upward to match gun position
+        shootRayDirection.current.z * SHOOT_RAY_OFFSET
+      ));
+
+    const shootRay = world.castRay(
+      new RAPIER.Ray(
+        rayOrigin,
+        shootRayDirection.current
+      ), 
+      100, 
+      true
+    );
+ 
+    // Update arrow helper position to match ray origin
+    // setArrowPosition(rayOrigin);
+
+    // Modify the raycast check to exclude self-collision
+    if (shootRay && shootRay.collider && shootRay.collider.parent() !== controls.current) {
+      // console.log('Hit target:', shootRay.collider.parent());
+      
+      // Apply impulse to hit target
+      const hitRigidBody = shootRay.collider.parent();
+      if (hitRigidBody && hitRigidBody.isValid()) {
+        const impulseStrength = 0.025;
+        const impulsePoint = new THREE.Vector3()
+          .copy(rayOrigin)
+          .add(shootRayDirection.current.multiplyScalar(shootRay.timeOfImpact));
+
+        dotRef.current!.position.copy(impulsePoint)
+       
+        if(shoot.current) {
+          hitRigidBody.applyImpulseAtPoint(
+            {
+              x: shootRayDirection.current.x * impulseStrength,
+              y: shootRayDirection.current.y * impulseStrength,
+              z: shootRayDirection.current.z * impulseStrength
+            },
+            impulsePoint,
+            true
+          );
+        }
+      }
+    }
 
   })
 
@@ -357,18 +440,26 @@ export function Player(props: JSX.IntrinsicElements['group']) {
             </group>
           </group>
         </group>
+
+      <PositionalAudio
+        url="/sfx/pistol-shot.mp3"
+        ref={shotSfxRef}
+        distance={8}
+        loop={false}
+        position={[0, 1.5, 0]}
+      />
       </RigidBody>
 
-      <arrowHelper 
+      {/* <arrowHelper 
         args={[
-          smoothedCameraPosition.current.clone().sub(directionVector).normalize(), // direction
-          smoothedPlayerPosition.current, // origin
+          arrowDirection, // use state instead of ref
+          arrowPosition, // use state instead of ref
           1,
-          0x00ff00, // color (green)
-          0.1, // head length
-          0.05 // head width
+          0x00ff00,
+          0.1,
+          0.05
         ]}
-      />
+      /> */}
       
       {/* Visualization helpers */}
       {/* {visualHelpers.showHelpers && (
@@ -399,6 +490,10 @@ export function Player(props: JSX.IntrinsicElements['group']) {
           />
         </>
       )} */}
+      <mesh ref={dotRef}>
+        <sphereGeometry args={[0.1, 16, 16]} />
+        <meshBasicMaterial color="red" />
+      </mesh>
     </group>
   )
 }

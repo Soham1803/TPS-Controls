@@ -6,8 +6,25 @@ import { Physics, RigidBody } from '@react-three/rapier';
 
 function App() {
 
-  return (
 
+  return (
+    <div>
+      <span
+        style={{
+          position: 'absolute',
+          backgroundImage: "url('../public/svgs/crosshair.svg')",
+          width: '50px',
+          height: '50px',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          pointerEvents: 'none',
+          zIndex: 1000,
+          backgroundSize: 'contain',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'center'
+        }}
+      />
     <KeyboardControls 
         map={React.useMemo(() => [
             { name: 'forward', keys: ['ArrowUp', 'w'] },
@@ -30,7 +47,7 @@ function App() {
               <meshStandardMaterial color={'gray'} />
             </mesh>
           </RigidBody>
-          <RigidBody position={[0, 1, 0]} type="dynamic" colliders="cuboid">
+          <RigidBody position={[5, 4, 0]} type="dynamic" friction={0} colliders="cuboid">
             <mesh>
               <boxGeometry args={[1, 1, 1]} />
               <meshStandardMaterial color={'blue'} />
@@ -40,6 +57,7 @@ function App() {
         </Physics>
       </Canvas>
     </KeyboardControls>
+    </div>
   )
 }
 
