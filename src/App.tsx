@@ -12,7 +12,7 @@ function App() {
       <span
         style={{
           position: 'absolute',
-          backgroundImage: "url('../public/svgs/crosshair.svg')",
+          backgroundImage: "url('/svgs/crosshair.svg')",
           width: '50px',
           height: '50px',
           top: '50%',
@@ -35,7 +35,7 @@ function App() {
             { name: 'jump', keys: ['Space'] },
         ], [])}
     >
-      <Canvas style={{ height: '100vh', width: '100vw', margin: '0' }} camera={{zoom: 3}}>
+      <Canvas style={{ height: '100vh', width: '100vw', margin: '0' }} camera={{zoom: 2}}>
         <OrbitControls />
         <ambientLight intensity={1} />
         <directionalLight color={'orange'} position={[0, 10, 5]} intensity={1} />
@@ -47,7 +47,7 @@ function App() {
               <meshStandardMaterial color={'gray'} />
             </mesh>
           </RigidBody>
-          <RigidBody position={[5, 4, 0]} type="dynamic" friction={0} colliders="cuboid">
+          <RigidBody position={[5, 4, 0]} type="dynamic" friction={0.5} colliders="cuboid">
             <mesh>
               <boxGeometry args={[1, 1, 1]} />
               <meshStandardMaterial color={'blue'} />

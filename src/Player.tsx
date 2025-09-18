@@ -19,6 +19,18 @@ const MOVE_SPEED = 2;
 const RUN_MULTIPLIER = 2;
 const MOUSE_SENSITIVITY = 0.002;
 const SHOOT_RAY_OFFSET = 0.5; // Offset from player to avoid self-collision
+const RECOIL_STRENGTH = 0.1;
+const RECOIL_DURATION = 150; // milliseconds
+const MUZZLE_FLASH_DURATION = 50; // milliseconds - very quick flash
+const MUZZLE_FLASH_LIGHT_INTENSITY = 15;
+const MUZZLE_FLASH_LIGHT_DISTANCE = 8;
+
+// Zoom (ADS) tuning
+const ZOOM_SHOULDER_X = 0.3;   // left shoulder (negative is left in player local)
+const ZOOM_SHOULDER_Y = 0.1;    // height above player origin
+const ZOOM_SHOULDER_Z = -0.3;    // slightly behind player (forward is -Z)
+const DEFAULT_CAMERA_FOV = 75;
+const ZOOM_CAMERA_FOV = 50;
 
 // const frontVector = new THREE.Vector3();
 // const sideVector = new THREE.Vector3();
@@ -66,10 +78,57 @@ export function Player({...props }: PlayerProps) {
   const [isJumping, setIsJumping] = React.useState(false); // Add jump state
   const jumpPressedRef = useRef(false); // Track jump key state
   const shoot = useRef<boolean>(false); // Track shoot state
+  const zoom  =  useRef<boolean>(false); // Track zoom state
   const shotSfxRef = useRef<THREE.PositionalAudio>(null);
+  const leftHandBone = useRef<THREE.Bone | null>(null);
+  const rightHandBone = useRef<THREE.Bone | null>(null);
+  const rightPalmBone = useRef<THREE.Bone | null>(null);
+  const recoilActive = useRef(false);
+  const recoilStartTime = useRef(0);
+  const leftHandOriginalRotation = useRef(new THREE.Euler());
+  const rightHandOriginalRotation = useRef(new THREE.Euler());
+  const muzzleFlashRef = useRef<THREE.Mesh>(null);
+  const muzzleFlashLightRef = useRef<THREE.PointLight>(null);
+  const muzzleFlashActive = useRef(false);
+  const muzzleFlashStartTime = useRef(0);
+  const gunBarrelRef = useRef<THREE.Vector3>(new THREE.Vector3());
+
   // const [arrowPosition, setArrowPosition] = useState(new THREE.Vector3());
   // const [arrowDirection, setArrowDirection] = useState(new THREE.Vector3());
   let actionAssigned;
+
+  // Create procedural muzzle flash texture
+  const createMuzzleFlashTexture = React.useMemo(() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 128;
+    canvas.height = 128;
+    const ctx = canvas.getContext('2d')!;
+    
+    // Create radial gradient for flash effect
+    const gradient = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+    gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');      // Bright white center
+    gradient.addColorStop(0.3, 'rgba(255, 200, 100, 0.8)');  // Orange-yellow
+    gradient.addColorStop(0.6, 'rgba(255, 100, 0, 0.4)');    // Orange fade
+    gradient.addColorStop(1, 'rgba(255, 0, 0, 0)');          // Transparent red edge
+    
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 128, 128);
+    
+    // Add some noise/texture for realism
+    const imageData = ctx.getImageData(0, 0, 128, 128);
+    const data = imageData.data;
+    
+    for (let i = 0; i < data.length; i += 4) {
+      // Add slight random variation to alpha channel
+      data[i + 3] *= (0.8 + Math.random() * 0.4);
+    }
+    
+    ctx.putImageData(imageData, 0, 0);
+    
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.needsUpdate = true;
+    return texture;
+  }, []);
 
   // Import animation from FBX
   const { animations: idle } = useFBX('/animations/pistol-idle.fbx')
@@ -146,7 +205,7 @@ export function Player({...props }: PlayerProps) {
         mouseRotationRef.current.x += event.movementX * MOUSE_SENSITIVITY;
         mouseRotationRef.current.y += event.movementY * MOUSE_SENSITIVITY;
 
-        mouseRotationRef.current.y = Math.max(-Math.PI/6, Math.min(Math.PI / 2, mouseRotationRef.current.y)); // Clamp vertical rotation
+        mouseRotationRef.current.y = Math.max(-Math.PI/6, Math.min(Math.PI / 3, mouseRotationRef.current.y)); // Clamp vertical rotation
       }
     }
 
@@ -162,16 +221,41 @@ export function Player({...props }: PlayerProps) {
       }
     }
 
+    // Modify the handleMouseDown function to trigger muzzle flash
     const handleMouseDown = (e: MouseEvent) => {
-      shotSfxRef.current?.play();
       if (!shoot.current && e.button === 0) { // Left mouse button
         shoot.current = true;
+        shotSfxRef.current?.play();
+        // Trigger recoil effect
+        if (leftHandBone.current && rightHandBone.current) {
+          // Store original rotations
+          leftHandOriginalRotation.current.copy(leftHandBone.current.rotation);
+          rightHandOriginalRotation.current.copy(rightHandBone.current.rotation);
+          
+          // Start recoil
+          recoilActive.current = true;
+          recoilStartTime.current = Date.now();
+        }
+
+        // Trigger muzzle flash
+        muzzleFlashActive.current = true;
+        muzzleFlashStartTime.current = Date.now();
 
         setTimeout(() => {
           shoot.current = false;
-          console.log("Time: ", Date.now());
+        }, 100); // Reset shoot after 100ms
+      } else if ( e.button === 2) { // Right mouse button
+        if (!zoom.current) {
+          // Zoom in
+          zoom.current = true;
         }
-        , 100); // Reset shoot after 100ms
+      }
+    }
+
+    const handleMouseUp = (e: MouseEvent) => {
+      if(e.button === 2) { // Right mouse button
+        // Zoom out
+        zoom.current = false;
       }
     }
       
@@ -180,12 +264,14 @@ export function Player({...props }: PlayerProps) {
     document.addEventListener('click', handleCanvasClick);
     document.addEventListener('keydown', handleEscapeHit);
     document.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('mouseup', handleMouseUp);
 
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('click', handleCanvasClick);
       document.removeEventListener('keydown', handleEscapeHit);
       document.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('mouseup', handleMouseUp);
     }
 
   })
@@ -205,6 +291,21 @@ export function Player({...props }: PlayerProps) {
   const dotRef = useRef<THREE.Mesh>(null);
 
   const rapier = useRapier();
+
+  useEffect(() => {
+    if (bones.length > 0) {
+      // Find hand bones in the skeleton
+      // These names might vary based on your model's bone naming convention
+      leftHandBone.current = bones[8];
+      
+      rightHandBone.current = bones[32]; 
+
+      rightPalmBone.current = bones[39]; // Right Index Finger
+
+      // Log bone names to help identify the correct hand bones
+      console.log('Available bones:', bones.map(bone => bone.name));
+    }
+  }, [bones]);
 
   useFrame((state, delta) => {
     const conCurr = controls.current;
@@ -275,9 +376,93 @@ export function Player({...props }: PlayerProps) {
 
     mixer.update(delta);
 
+    // Handle recoil animation
+    if (recoilActive.current && leftHandBone.current && rightHandBone.current) {
+      const currentTime = Date.now();
+      const elapsedTime = currentTime - recoilStartTime.current;
+      const progress = Math.min(elapsedTime / RECOIL_DURATION, 1);
+
+      if (progress < 1) {
+        // Apply recoil with easing (quick up, slow down)
+        const recoilIntensity = Math.sin(progress * Math.PI) * RECOIL_STRENGTH;
+        
+        // Apply the recoil rotation
+        leftHandBone.current.rotation.copy(leftHandOriginalRotation.current);
+        rightHandBone.current.rotation.copy(rightHandOriginalRotation.current);
+        
+        // leftHandBone.current.rotation.x -= recoilIntensity;
+        // rightHandBone.current.rotation.x -= recoilIntensity;
+        
+        // Optional: Add slight side-to-side motion for more realism
+        leftHandBone.current.rotation.z += recoilIntensity * 0.05;
+        rightHandBone.current.rotation.z -= recoilIntensity * 0.05;
+      } else {
+        // Reset to original positions
+        leftHandBone.current.rotation.copy(leftHandOriginalRotation.current);
+        rightHandBone.current.rotation.copy(rightHandOriginalRotation.current);
+        recoilActive.current = false;
+      }
+    }
+
     // Get mouse rotation values
     const yaw = -mouseRotationRef.current.x;
     const pitch = mouseRotationRef.current.y;
+
+    // Handle muzzle flash animation
+    if (muzzleFlashActive.current) {
+      const currentTime = Date.now();
+      const elapsedTime = currentTime - muzzleFlashStartTime.current;
+      const progress = Math.min(elapsedTime / MUZZLE_FLASH_DURATION, 1);
+
+      if (progress < 1) {
+        // Calculate gun barrel position (approximate position in front of right hand)
+        if (rightPalmBone.current && group.current) {
+          const handWorldPosition = new THREE.Vector3();
+          rightPalmBone.current.getWorldPosition(handWorldPosition);
+          
+          // Offset forward from the hand to simulate gun barrel
+          const gunOffset = new THREE.Vector3(0, 0, 0); // Adjust based on your gun model
+          const mflashQuat = new THREE.Quaternion().setFromEuler(
+            new THREE.Euler(-pitch, yaw, 0, 'XYZ')
+          )
+          gunOffset.applyQuaternion(mflashQuat);
+          gunBarrelRef.current.copy(handWorldPosition).add(gunOffset);
+        }
+
+        // Flash intensity with quick fade
+        const flashIntensity = 1 - Math.pow(progress, 2); // Quick fade out
+        
+        // Update muzzle flash position and visibility
+        if (muzzleFlashRef.current) {
+          muzzleFlashRef.current.position.copy(gunBarrelRef.current);
+          muzzleFlashRef.current.lookAt(state.camera.position); // Always face camera
+          muzzleFlashRef.current.visible = true;
+          
+          // Scale variation for more dynamic effect
+          const scale = 0.3 + Math.random() * 0.2; // Random scale between 0.3-0.5
+          muzzleFlashRef.current.scale.setScalar(scale * flashIntensity);
+          
+          // Rotate randomly for variety
+          muzzleFlashRef.current.rotation.z = Math.random() * Math.PI * 2;
+        }
+
+        // Update muzzle flash light
+        if (muzzleFlashLightRef.current) {
+          muzzleFlashLightRef.current.position.copy(gunBarrelRef.current.clone().add(new THREE.Vector3(0, 0.1, 0.3)));
+          muzzleFlashLightRef.current.intensity = MUZZLE_FLASH_LIGHT_INTENSITY * flashIntensity;
+          muzzleFlashLightRef.current.visible = true;
+        }
+      } else {
+        // Hide flash when animation is complete
+        if (muzzleFlashRef.current) {
+          muzzleFlashRef.current.visible = false;
+        }
+        if (muzzleFlashLightRef.current) {
+          muzzleFlashLightRef.current.visible = false;
+        }
+        muzzleFlashActive.current = false;
+      }
+    }
 
     // Apply YAW to the player (make player rotate with mouse X)
     const playerYRotation = new THREE.Quaternion().setFromAxisAngle(
@@ -286,7 +471,7 @@ export function Player({...props }: PlayerProps) {
     );
 
     if (group.current) {
-      group.current.quaternion.slerp(playerYRotation, 0.1);
+      group.current.quaternion.slerp(playerYRotation, zoom.current ? 0.99 : 0.1);
     }
 
     // Calculate player's forward direction for movement
@@ -327,31 +512,79 @@ export function Player({...props }: PlayerProps) {
     // positionHelper.scale.set(10, 10, 10);
     // shotSfxRef.current?.add(positionHelper);
 
-    // Camera positioning - behind and above the player
-    const cameraDistance = 4 * Math.sin(pitch) + 3; // Adjust camera distance based on pitch
-    const baseCameraHeight = 1.6; // Base height of the camera above the player
+    // Camera positioning
+    let targetCameraPos: THREE.Vector3;
 
-    const orbitAngle = pitch;
+    // if (zoom.current) {
+    //   // Over-left-shoulder camera when zoomed
+    //   const shoulderOffset = new THREE.Vector3(
+    //     ZOOM_SHOULDER_X,
+    //     ZOOM_SHOULDER_Y,
+    //     ZOOM_SHOULDER_Z
+    //   ).applyQuaternion(playerYRotation);
 
-    const cameraOffset = new THREE.Vector3(
-      0, 
-      Math.sin(orbitAngle) * cameraDistance + baseCameraHeight, // Adjust height based on pitch
-      -Math. cos(orbitAngle) * cameraDistance
-    ); // Move camera further back
+    //   targetCameraPos = new THREE.Vector3(
+    //     smoothedPlayerPosition.current.x + shoulderOffset.x,
+    //     smoothedPlayerPosition.current.y + shoulderOffset.y,
+    //     smoothedPlayerPosition.current.z + shoulderOffset.z
+    //   );
+    // } else {
+      // Default third-person orbit camera
+      const amplitude = zoom.current ? 0.2 : 4;
+      const adder = zoom.current ? 0.1 : 3;
+      const zoomAdjuster = zoom.current ? Math.cos(pitch) : Math.sin(pitch);
+      const cameraDistance = amplitude * (zoomAdjuster) + adder; // Adjust camera distance based on pitch
+      const baseCameraHeight = zoom.current ? 1.65 : 1.5; // Base height of the camera above the player
+      const orbitAngle = pitch;
 
-    cameraOffset.applyQuaternion(playerYRotation);
+      const cameraOffset = new THREE.Vector3(
+        zoom.current ? -0.35 : 0,
+        Math.sin(orbitAngle) * cameraDistance + baseCameraHeight, // Adjust height based on pitch
+        -Math.cos(orbitAngle) * cameraDistance
+      ); // Move camera further back
 
-    const targetCameraPos = new THREE.Vector3(
-      smoothedPlayerPosition.current.x + cameraOffset.x,
-      smoothedPlayerPosition.current.y + cameraOffset.y - 1.6, // Subtract the offset we added
-      smoothedPlayerPosition.current.z + cameraOffset.z
-    );
+      cameraOffset.applyQuaternion(playerYRotation);
 
-    smoothedCameraPosition.current.lerp(targetCameraPos, 0.1);
+      targetCameraPos = new THREE.Vector3(
+        smoothedPlayerPosition.current.x + cameraOffset.x,
+        smoothedPlayerPosition.current.y + cameraOffset.y - 1.6, // Subtract the offset we added
+        smoothedPlayerPosition.current.z + cameraOffset.z
+      );
+    // }    // Get mouse rotation values
+
+    // Smooth camera movement (slightly faster when zoomed)
+    smoothedCameraPosition.current.lerp(targetCameraPos, zoom.current ? 0.1 : 0.1);
     state.camera.position.copy(smoothedCameraPosition.current);
 
-    // Camera rotation - look at player with pitch adjustment
-    state.camera.lookAt(smoothedPlayerPosition.current.clone().add(new THREE.Vector3(0, 0.5, 0)));
+    // Smooth FOV transition between default and zoom FOV
+    const targetFov = zoom.current ? ZOOM_CAMERA_FOV : DEFAULT_CAMERA_FOV;
+    state.camera.fov += (targetFov - state.camera.fov) * 0.15;
+    state.camera.zoom = zoom.current ? 1 : 2;
+    state.camera.updateProjectionMatrix();
+
+    // Camera rotation
+    if (zoom.current) {
+      // Look in the direction of the gun point
+      // Use right palm as aim origin if available
+      const aimOrigin = new THREE.Vector3();
+     
+      aimOrigin.copy(smoothedPlayerPosition.current).add(new THREE.Vector3(0, 1.5, 0));
+      
+
+      // Compute aim direction from yaw/pitch (match shooting direction)
+      const aimQuat = new THREE.Quaternion().setFromEuler(
+        new THREE.Euler(-pitch, yaw + Math.PI, 0, 'YXZ')
+      );
+      const aimDir = new THREE.Vector3(0.1, 0, -1).applyQuaternion(aimQuat);
+
+      const aimTarget = aimOrigin.clone().add(aimDir.multiplyScalar(10));
+      state.camera.lookAt(aimTarget);
+    } else {
+      // Default: look at player
+      state.camera.lookAt(
+        smoothedPlayerPosition.current.clone().add(new THREE.Vector3(0, 0.5, 0))
+      );
+    }
 
     // Spine2 rotation for gun aiming
     const spineRotationAxis = new THREE.Vector3(1, 0, -0.5); 
@@ -362,13 +595,8 @@ export function Player({...props }: PlayerProps) {
     shootRayDirection.current = newDirection;
     // setArrowDirection(newDirection);
 
-    const rayOrigin = new THREE.Vector3()
-      .copy(smoothedPlayerPosition.current)
-      .add(new THREE.Vector3(
-        shootRayDirection.current.x * SHOOT_RAY_OFFSET,
-        0.5, // Offset upward to match gun position
-        shootRayDirection.current.z * SHOOT_RAY_OFFSET
-      ));
+    const rayOrigin = new THREE.Vector3().copy(state.camera.position)
+  
 
     const shootRay = world.castRay(
       new RAPIER.Ray(
@@ -410,6 +638,7 @@ export function Player({...props }: PlayerProps) {
       }
     }
 
+
   })
 
   return (
@@ -450,49 +679,32 @@ export function Player({...props }: PlayerProps) {
       />
       </RigidBody>
 
-      {/* <arrowHelper 
-        args={[
-          arrowDirection, // use state instead of ref
-          arrowPosition, // use state instead of ref
-          1,
-          0x00ff00,
-          0.1,
-          0.05
-        ]}
-      /> */}
-      
-      {/* Visualization helpers */}
-      {/* {visualHelpers.showHelpers && (
-        <>
-          <arrowHelper 
-            args={[
-              visualHelpers.perpAxisDirection, 
-              visualHelpers.perpAxisOrigin, 
-              1, // length
-              0xff0000, // color (red)
-              0.1, // head length
-              0.05 // head width
-            ]} 
-          />
-          <arrowHelper
-            args={[
-              arrowHelper.direction,
-              arrowHelper.origin,
-              1, // length
-              0x00ff00, // color (green)
-              0.1, // head length
-              0.05 // head width
-            ]}
-          />
-          <axesHelper 
-            position={visualHelpers.perpAxisOrigin} 
-            args={[0.5]} // size of axes
-          />
-        </>
-      )} */}
+      {/* Muzzle Flash */}
+      <mesh ref={muzzleFlashRef} visible={false}>
+        <planeGeometry args={[0.5, 0.5]} />
+        <meshBasicMaterial 
+          map={createMuzzleFlashTexture}
+          transparent
+          opacity={0.9}
+          blending={THREE.AdditiveBlending} // Additive blending for glowing effect
+          depthWrite={false} // Don't write to depth buffer
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+
+      {/* Muzzle Flash Light */}
+      <pointLight
+        ref={muzzleFlashLightRef}
+        intensity={0}
+        distance={MUZZLE_FLASH_LIGHT_DISTANCE}
+        decay={2}
+        color={0xffa500} // Orange/yellow color for gun flash
+        visible={false}
+      />
+
       <mesh ref={dotRef}>
         <sphereGeometry args={[0.1, 16, 16]} />
-        <meshBasicMaterial color="red" />
+        <meshBasicMaterial visible color='gray' />
       </mesh>
     </group>
   )
