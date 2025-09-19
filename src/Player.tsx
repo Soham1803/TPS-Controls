@@ -18,7 +18,6 @@ import RAPIER from '@dimforge/rapier3d-compat'
 const MOVE_SPEED = 2;
 const RUN_MULTIPLIER = 2;
 const MOUSE_SENSITIVITY = 0.002;
-const SHOOT_RAY_OFFSET = 0.5; // Offset from player to avoid self-collision
 const RECOIL_STRENGTH = 0.1;
 const RECOIL_DURATION = 150; // milliseconds
 const MUZZLE_FLASH_DURATION = 50; // milliseconds - very quick flash
@@ -26,9 +25,6 @@ const MUZZLE_FLASH_LIGHT_INTENSITY = 15;
 const MUZZLE_FLASH_LIGHT_DISTANCE = 8;
 
 // Zoom (ADS) tuning
-const ZOOM_SHOULDER_X = 0.3;   // left shoulder (negative is left in player local)
-const ZOOM_SHOULDER_Y = 0.1;    // height above player origin
-const ZOOM_SHOULDER_Z = -0.3;    // slightly behind player (forward is -Z)
 const DEFAULT_CAMERA_FOV = 75;
 const ZOOM_CAMERA_FOV = 50;
 
@@ -408,62 +404,6 @@ export function Player({...props }: PlayerProps) {
     const yaw = -mouseRotationRef.current.x;
     const pitch = mouseRotationRef.current.y;
 
-    // Handle muzzle flash animation
-    if (muzzleFlashActive.current) {
-      const currentTime = Date.now();
-      const elapsedTime = currentTime - muzzleFlashStartTime.current;
-      const progress = Math.min(elapsedTime / MUZZLE_FLASH_DURATION, 1);
-
-      if (progress < 1) {
-        // Calculate gun barrel position (approximate position in front of right hand)
-        if (rightPalmBone.current && group.current) {
-          const handWorldPosition = new THREE.Vector3();
-          rightPalmBone.current.getWorldPosition(handWorldPosition);
-          
-          // Offset forward from the hand to simulate gun barrel
-          const gunOffset = new THREE.Vector3(0, 0, 0); // Adjust based on your gun model
-          const mflashQuat = new THREE.Quaternion().setFromEuler(
-            new THREE.Euler(-pitch, yaw, 0, 'XYZ')
-          )
-          gunOffset.applyQuaternion(mflashQuat);
-          gunBarrelRef.current.copy(handWorldPosition).add(gunOffset);
-        }
-
-        // Flash intensity with quick fade
-        const flashIntensity = 1 - Math.pow(progress, 2); // Quick fade out
-        
-        // Update muzzle flash position and visibility
-        if (muzzleFlashRef.current) {
-          muzzleFlashRef.current.position.copy(gunBarrelRef.current);
-          muzzleFlashRef.current.lookAt(state.camera.position); // Always face camera
-          muzzleFlashRef.current.visible = true;
-          
-          // Scale variation for more dynamic effect
-          const scale = 0.3 + Math.random() * 0.2; // Random scale between 0.3-0.5
-          muzzleFlashRef.current.scale.setScalar(scale * flashIntensity);
-          
-          // Rotate randomly for variety
-          muzzleFlashRef.current.rotation.z = Math.random() * Math.PI * 2;
-        }
-
-        // Update muzzle flash light
-        if (muzzleFlashLightRef.current) {
-          muzzleFlashLightRef.current.position.copy(gunBarrelRef.current.clone().add(new THREE.Vector3(0, 0.1, 0.3)));
-          muzzleFlashLightRef.current.intensity = MUZZLE_FLASH_LIGHT_INTENSITY * flashIntensity;
-          muzzleFlashLightRef.current.visible = true;
-        }
-      } else {
-        // Hide flash when animation is complete
-        if (muzzleFlashRef.current) {
-          muzzleFlashRef.current.visible = false;
-        }
-        if (muzzleFlashLightRef.current) {
-          muzzleFlashLightRef.current.visible = false;
-        }
-        muzzleFlashActive.current = false;
-      }
-    }
-
     // Apply YAW to the player (make player rotate with mouse X)
     const playerYRotation = new THREE.Quaternion().setFromAxisAngle(
       new THREE.Vector3(0, 1, 0),
@@ -507,50 +447,91 @@ export function Player({...props }: PlayerProps) {
 
     smoothedPlayerPosition.current.lerp(currentPlayerPos, 0.15);
 
+
+    // Handle muzzle flash animation
+    if (muzzleFlashActive.current) {
+      const currentTime = Date.now();
+      const elapsedTime = currentTime - muzzleFlashStartTime.current;
+      const progress = Math.min(elapsedTime / MUZZLE_FLASH_DURATION, 1);
+
+      if (progress < 1) {
+        // Calculate gun barrel position (approximate position in front of right hand)
+        if (group.current) {
+          const handWorldPosition = new THREE.Vector3();
+          bones[3].getWorldPosition(handWorldPosition);
+          
+          // Offset forward from the hand to simulate gun barrel
+          const gunOffset = new THREE.Vector3(0, 0.2, 1); // Adjust based on your gun model
+          const mflashQuat = new THREE.Quaternion().setFromEuler(
+            new THREE.Euler(pitch, yaw, 0, 'YXZ')
+          )
+          gunOffset.applyQuaternion(mflashQuat);
+          gunBarrelRef.current.copy(handWorldPosition).add(gunOffset);
+        }
+
+        // Flash intensity with quick fade
+        const flashIntensity = 1 - Math.pow(progress, 2); // Quick fade out
+        
+        // Update muzzle flash position and visibility
+        if (muzzleFlashRef.current) {
+          muzzleFlashRef.current.position.copy(gunBarrelRef.current);
+          muzzleFlashRef.current.lookAt(state.camera.position); // Always face camera
+          muzzleFlashRef.current.visible = true;
+          
+          // Scale variation for more dynamic effect
+          const scale = 0.3 + Math.random() * 0.2; // Random scale between 0.3-0.5
+          muzzleFlashRef.current.scale.setScalar(scale * flashIntensity);
+          
+          // Rotate randomly for variety
+          muzzleFlashRef.current.rotation.z = Math.random() * Math.PI * 2;
+        }
+
+        // Update muzzle flash light
+        if (muzzleFlashLightRef.current) {
+          muzzleFlashLightRef.current.position.copy(gunBarrelRef.current.clone().add(new THREE.Vector3(0, 0.1, 0.3)));
+          muzzleFlashLightRef.current.intensity = MUZZLE_FLASH_LIGHT_INTENSITY * flashIntensity;
+          muzzleFlashLightRef.current.visible = true;
+        }
+      } else {
+        // Hide flash when animation is complete
+        if (muzzleFlashRef.current) {
+          muzzleFlashRef.current.visible = false;
+        }
+        if (muzzleFlashLightRef.current) {
+          muzzleFlashLightRef.current.visible = false;
+        }
+        muzzleFlashActive.current = false;
+      }
+    }
+
     // const positionHelper = new PositionalAudioHelper(shotSfxRef.current!, 10);
     // positionHelper.update();
     // positionHelper.scale.set(10, 10, 10);
     // shotSfxRef.current?.add(positionHelper);
 
-    // Camera positioning
-    let targetCameraPos: THREE.Vector3;
+      
+    // Default third-person orbit camera
+    const amplitude = zoom.current ? 0.2 : 4;
+    const adder = zoom.current ? 0.1 : 3;
+    const zoomAdjuster = zoom.current ? Math.cos(pitch) : Math.sin(pitch);
+    const cameraDistance = amplitude * (zoomAdjuster) + adder; // Adjust camera distance based on pitch
+    const baseCameraHeight = zoom.current ? 1.65 : 1.5; // Base height of the camera above the player
+    const orbitAngle = pitch;
 
-    // if (zoom.current) {
-    //   // Over-left-shoulder camera when zoomed
-    //   const shoulderOffset = new THREE.Vector3(
-    //     ZOOM_SHOULDER_X,
-    //     ZOOM_SHOULDER_Y,
-    //     ZOOM_SHOULDER_Z
-    //   ).applyQuaternion(playerYRotation);
+    const cameraOffset = new THREE.Vector3(
+      zoom.current ? -0.35 : 0,
+      Math.sin(orbitAngle) * cameraDistance + baseCameraHeight, // Adjust height based on pitch
+      -Math.cos(orbitAngle) * cameraDistance
+    ); // Move camera further back
 
-    //   targetCameraPos = new THREE.Vector3(
-    //     smoothedPlayerPosition.current.x + shoulderOffset.x,
-    //     smoothedPlayerPosition.current.y + shoulderOffset.y,
-    //     smoothedPlayerPosition.current.z + shoulderOffset.z
-    //   );
-    // } else {
-      // Default third-person orbit camera
-      const amplitude = zoom.current ? 0.2 : 4;
-      const adder = zoom.current ? 0.1 : 3;
-      const zoomAdjuster = zoom.current ? Math.cos(pitch) : Math.sin(pitch);
-      const cameraDistance = amplitude * (zoomAdjuster) + adder; // Adjust camera distance based on pitch
-      const baseCameraHeight = zoom.current ? 1.65 : 1.5; // Base height of the camera above the player
-      const orbitAngle = pitch;
+    cameraOffset.applyQuaternion(playerYRotation);
 
-      const cameraOffset = new THREE.Vector3(
-        zoom.current ? -0.35 : 0,
-        Math.sin(orbitAngle) * cameraDistance + baseCameraHeight, // Adjust height based on pitch
-        -Math.cos(orbitAngle) * cameraDistance
-      ); // Move camera further back
-
-      cameraOffset.applyQuaternion(playerYRotation);
-
-      targetCameraPos = new THREE.Vector3(
-        smoothedPlayerPosition.current.x + cameraOffset.x,
-        smoothedPlayerPosition.current.y + cameraOffset.y - 1.6, // Subtract the offset we added
-        smoothedPlayerPosition.current.z + cameraOffset.z
-      );
-    // }    // Get mouse rotation values
+    const targetCameraPos = new THREE.Vector3(
+      smoothedPlayerPosition.current.x + cameraOffset.x,
+      smoothedPlayerPosition.current.y + cameraOffset.y - 1.6, // Subtract the offset we added
+      smoothedPlayerPosition.current.z + cameraOffset.z
+    );
+  // }    // Get mouse rotation values
 
     // Smooth camera movement (slightly faster when zoomed)
     smoothedCameraPosition.current.lerp(targetCameraPos, zoom.current ? 0.1 : 0.1);
