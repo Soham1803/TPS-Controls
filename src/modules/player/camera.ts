@@ -63,17 +63,17 @@ export function updateCamera({
 
     // Compute aim direction from yaw/pitch (match shooting direction)
     const aimQuat = new THREE.Quaternion().setFromEuler(
-    new THREE.Euler(-pitch, yaw + Math.PI, 0, 'YXZ')
+      new THREE.Euler(-pitch, yaw + Math.PI, 0, 'YXZ')
     );
     const aimDir = new THREE.Vector3(0.1, 0, -1).applyQuaternion(aimQuat);
 
-    const aimTarget = aimOrigin.clone().add(aimDir.multiplyScalar(10));
+    const aimTarget = aimOrigin.clone().add(aimDir.multiplyScalar(15));
     camera.lookAt(aimTarget);
 
   } else {
      // Default: look at player
     camera.lookAt(
-    smoothedPlayerPosition.current.clone().add(new THREE.Vector3(0, 0.5, 0))
+      smoothedPlayerPosition.current.clone().add(new THREE.Vector3(0, 0.5, 0))
     );
 
   }

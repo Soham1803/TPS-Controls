@@ -19,11 +19,9 @@ export function handleJump({
     
     const jumpDuration = actions[8].getClip().duration; // Get jump animation duration
 
-    setTimeout(() => {  
-      if (controls.current) {
-        controls.current.applyImpulse({x: 0, y: 1.3, z: 0}, true);
-      }
-    }, 0); // Delay impulse to sync with animation
+    if (controls.current) {
+     controls.current.applyImpulse({x: 0, y: 1.3, z: 0}, true);
+    }
     
     // Set jump animation duration (adjust based on your animation length)
     setTimeout(() => {

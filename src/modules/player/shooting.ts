@@ -8,8 +8,8 @@ export interface ShootingParams {
   camera: THREE.Camera;
   controls: React.RefObject<RapierRigidBody | null>;
   dotRef: React.RefObject<THREE.Mesh | null>;
-  shoot: React.MutableRefObject<boolean>;
-  shootRayDirection: React.MutableRefObject<THREE.Vector3>;
+  shoot: React.RefObject<boolean>;
+  shootRayDirection: React.RefObject<THREE.Vector3>;
 }
 
 export function handleShooting({

@@ -263,7 +263,7 @@ export function Player({...props }: PlayerProps) {
     );
 
     if (group.current) {
-      group.current.quaternion.slerp(playerYRotation, zoom.current ? 0.99 : 0.1);
+      group.current.quaternion.slerp(playerYRotation, zoom.current ? 1 : 0.1);
     }
 
     // Update movement physics
@@ -384,7 +384,7 @@ export function Player({...props }: PlayerProps) {
 
       <mesh ref={dotRef}>
         <sphereGeometry args={[0.1, 16, 16]} />
-        <meshBasicMaterial visible color='gray' />
+        <meshStandardMaterial visible={false} color='red' opacity={1} />
       </mesh>
     </group>
   )
