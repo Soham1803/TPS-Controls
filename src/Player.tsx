@@ -302,7 +302,8 @@ export function Player({...props }: PlayerProps) {
       playerYRotation,
       pitch,
       yaw,
-      camera: state.camera
+      camera: state.camera,
+      world
     });
 
     // Spine2 rotation for gun aiming

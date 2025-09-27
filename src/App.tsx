@@ -47,9 +47,9 @@ function App() {
               <meshStandardMaterial color={'gray'} />
             </mesh>
           </RigidBody>
-          <RigidBody position={[5, 4, 0]} type="dynamic" friction={0.5} colliders="cuboid">
+          <RigidBody position={[5, 4, 0]} type="fixed" friction={0.5} colliders="cuboid">
             <mesh>
-              <boxGeometry args={[1, 1, 1]} />
+              <boxGeometry args={[10, 10, 1]} />
               <meshStandardMaterial color={'blue'} />
             </mesh>
           </RigidBody>
