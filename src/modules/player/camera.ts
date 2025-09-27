@@ -39,26 +39,36 @@ function checkCameraCollision(
   let closestHit = world.castRay(mainRay, fullDistance, true);
   let shortestDistance = closestHit ? closestHit.timeOfImpact : fullDistance;
 
-  // Additional rays for better collision detection (slightly offset from main ray)
-  const offsets = [
-    { x: 0.1, y: 0.1, z: 0 },
-    { x: -0.1, y: 0.1, z: 0 },
-    { x: 0.1, y: -0.1, z: 0 },
-    { x: -0.1, y: -0.1, z: 0 }
+  // Additional rays with offset directions to create a detection cone
+  // This is more effective than parallel rays as it simulates camera volume collision
+  const directionOffsets = [
+    { x: 0.05, y: 0.05, z: 0 },   // Up-right
+    { x: -0.05, y: 0.05, z: 0 },  // Up-left  
+    { x: 0.05, y: -0.05, z: 0 },  // Down-right
+    { x: -0.05, y: -0.05, z: 0 }, // Down-left
+    { x: 0, y: 0.08, z: 0 },      // Straight up
+    { x: 0, y: -0.08, z: 0 },     // Straight down
+    { x: 0.08, y: 0, z: 0 },      // Straight right
+    { x: -0.08, y: 0, z: 0 }      // Straight left
   ];
 
-  // Cast additional rays with small offsets to detect collision more reliably
-  for (const offset of offsets) {
-    const offsetOrigin = {
-      x: playerHeadPosition.x + offset.x,
-      y: playerHeadPosition.y + offset.y,
-      z: playerHeadPosition.z + offset.z
-    };
+  // Cast additional rays with offset directions to create a cone of detection
+  for (const dirOffset of directionOffsets) {
+    // Create slightly offset direction vector
+    const offsetDirection = new THREE.Vector3(
+      direction.x + dirOffset.x,
+      direction.y + dirOffset.y, 
+      direction.z + dirOffset.z
+    ).normalize();
 
-    const offsetRay = new RAPIER.Ray(offsetOrigin, {
-      x: direction.x,
-      y: direction.y,
-      z: direction.z
+    const offsetRay = new RAPIER.Ray({
+      x: playerHeadPosition.x,
+      y: playerHeadPosition.y,
+      z: playerHeadPosition.z
+    }, {
+      x: offsetDirection.x,
+      y: offsetDirection.y,
+      z: offsetDirection.z
     });
 
     const hit = world.castRay(offsetRay, fullDistance, true);
