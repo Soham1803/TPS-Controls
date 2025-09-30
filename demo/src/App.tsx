@@ -1,7 +1,7 @@
 import React from 'react';
 import { KeyboardControls, OrbitControls } from "@react-three/drei"
 import { Canvas } from "@react-three/fiber"
-import { Player } from "./Player"
+import { Player } from "tps-controls"
 import { Physics, RigidBody } from '@react-three/rapier';
 
 function App() {
@@ -37,8 +37,9 @@ function App() {
     >
       <Canvas style={{ height: '100vh', width: '100vw', margin: '0' }} camera={{zoom: 2}}>
         <OrbitControls />
-        <ambientLight intensity={1} />
+        <ambientLight intensity={0.3} />
         <directionalLight color={'orange'} position={[0, 10, 5]} intensity={1} />
+        <directionalLight color={'blue'} position={[5, 0, -10]} intensity={0.5} />
         <gridHelper args={[100, 100]} />
         <Physics gravity={[0, -9.81, 0]} >
           <RigidBody position={[0, 0, 0]} type="fixed" colliders="cuboid">
@@ -47,12 +48,25 @@ function App() {
               <meshStandardMaterial color={'gray'} />
             </mesh>
           </RigidBody>
-          <RigidBody position={[5, 4, 0]} type="dynamic" friction={0.5} colliders="cuboid">
+          <RigidBody position={[5, 4, 0]} type="fixed" friction={0.5} colliders="cuboid">
             <mesh>
-              <boxGeometry args={[1, 1, 1]} />
+              <boxGeometry args={[10, 10, 1]} />
               <meshStandardMaterial color={'blue'} />
             </mesh>
           </RigidBody>
+          {/* Player with default assets - for custom assets, you can use:
+          <Player 
+            modelPath="/models/your-character.glb"
+            animationPaths={{
+              idle: "/animations/your-idle.fbx",
+              walkForward: "/animations/your-walk.fbx",
+              // ... other animations
+            }}
+            audioPath="/sfx/your-shot.mp3"
+            mass={8}
+            friction={0.8}
+          />
+          */}
           <Player />
         </Physics>
       </Canvas>

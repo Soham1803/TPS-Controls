@@ -1,0 +1,109 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check-lockfiles:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check for conflicting lock files
+        run: |
+          if [ -f "package-lock.json" ] || [ -f "yarn.lock" ] || [ -f ".yarn.lock" ]; then
+            echo "❌ Error: Found conflicting lock files!"
+            echo "This repository uses pnpm. Please remove:"
+            [ -f "package-lock.json" ] && echo "  - package-lock.json"
+            [ -f "yarn.lock" ] && echo "  - yarn.lock" 
+            [ -f ".yarn.lock" ] && echo "  - .yarn.lock"
+            echo ""
+            echo "Use 'pnpm install' instead of 'npm install' or 'yarn install'"
+            exit 1
+          fi
+          
+          echo "✅ Lock file check passed - no conflicting lock files found"
+
+  test:
+    needs: check-lockfiles
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'pnpm'
+      
+      - name: Install dependencies
+        run: |
+          echo "🔍 Checking lock file compatibility..."
+          
+          # Try to install with frozen lockfile first
+          if pnpm install --frozen-lockfile 2>/dev/null; then
+            echo "📦 Successfully installed with frozen lockfile"
+          else
+            echo "⚠️  Lock file incompatible or missing, regenerating..."
+            echo "🧹 Cleaning up and reinstalling..."
+            rm -f pnpm-lock.yaml
+            pnpm install
+            echo "📝 New compatible lockfile generated"
+          fi
+      
+      - name: Lint code
+        run: pnpm run lint
+      
+      - name: Build package
+        run: pnpm run build
+      
+      - name: Build demo
+        run: pnpm run build:demo
+
+  publish:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          registry-url: https://registry.npmjs.org/
+          cache: 'pnpm'
+      
+      - name: Install dependencies
+        run: |
+          echo "🔍 Checking lock file compatibility..."
+          
+          # Try to install with frozen lockfile first
+          if pnpm install --frozen-lockfile 2>/dev/null; then
+            echo "📦 Successfully installed with frozen lockfile"
+          else
+            echo "⚠️  Lock file incompatible or missing, regenerating..."
+            echo "🧹 Cleaning up and reinstalling..."
+            rm -f pnpm-lock.yaml
+            pnpm install
+            echo "📝 New compatible lockfile generated"
+          fi
+      
+      - name: Build package
+        run: pnpm run build
+      
+      - name: Publish to NPM
+        run: pnpm run publish:package
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
