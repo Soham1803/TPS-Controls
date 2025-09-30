@@ -324,7 +324,29 @@ updateCamera({
 
 We welcome contributions! Check out our [contribution guidelines](https://github.com/Soham1803/third-person-shooter-controls/blob/main/CONTRIBUTING.md).
 
-## 📄 License
+## � Troubleshooting
+
+### Installation Issues
+
+```bash
+# Package not found
+npm install tps-controls
+# or
+pnpm add tps-controls
+
+# Peer dependency warnings
+npm install @react-three/fiber @react-three/drei @react-three/rapier three
+```
+
+### Runtime Issues
+
+- **Physics not working**: Ensure your component is wrapped in `<Physics>` from `@react-three/rapier`
+- **Assets not loading**: Check that your asset paths are correct and files exist in `public/`
+- **TypeScript errors**: Make sure you have the latest version with `pnpm add tps-controls@latest`
+
+For more help, see the [main repository documentation](https://github.com/Soham1803/third-person-shooter-controls).
+
+## �📄 License
 
 MIT License - see [LICENSE](https://github.com/Soham1803/third-person-shooter-controls/blob/main/LICENSE) for details.
 

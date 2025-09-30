@@ -29,7 +29,12 @@ A modern, web-based third-person shooter game built with **React Three Fiber**, 
    cd third-person-shooter-controls
    ```
 
-2. **Install dependencies**
+2. **Quick setup** (recommended)
+   ```bash
+   pnpm run setup
+   ```
+   
+   Or **install dependencies manually**:
    ```bash
    pnpm install
    # or alternatively
@@ -40,8 +45,10 @@ A modern, web-based third-person shooter game built with **React Three Fiber**, 
 
 3. **Start the development server**
    ```bash
-   pnpm run dev
+   pnpm run dev:watch    # Recommended: Auto-rebuilds package + demo
    # or alternatively
+   pnpm run dev          # Just demo
+   # or
    npm run dev
    # or
    yarn dev
@@ -156,7 +163,31 @@ We are committed to providing a welcoming and inclusive environment for all cont
 - [ ] 🎨 More character models and animations
 - [ ] 🔧 Settings/options menu
 
-## 📄 License
+## � Troubleshooting
+
+### Common Issues
+
+**Installation Problems:**
+```bash
+# If you encounter lock file errors
+pnpm run reset
+
+# If packages seem outdated
+pnpm install --force
+```
+
+**Development Issues:**
+```bash
+# If changes aren't reflected
+pnpm run dev:watch
+
+# If build fails
+pnpm run build
+```
+
+**For more detailed troubleshooting, see [CONTRIBUTING.md](CONTRIBUTING.md#troubleshooting)**
+
+## �📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 

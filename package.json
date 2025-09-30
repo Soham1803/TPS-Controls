@@ -11,8 +11,10 @@
     "test": "pnpm --filter '*' test",
     "lint": "eslint . --ext .ts,.tsx",
     "format": "prettier --write .",
+    "setup": "pnpm install && pnpm run build && echo '✅ Project setup complete!'",
     "clean:lockfiles": "rm -f package-lock.json yarn.lock .yarn.lock && echo '✅ Cleaned conflicting lock files. Run: pnpm install'",
-    "check:lockfiles": "node scripts/check-lockfiles.js"
+    "check:lockfiles": "node scripts/check-lockfiles.js",
+    "reset": "rm -rf node_modules demo/node_modules package/node_modules pnpm-lock.yaml && pnpm install && echo '✅ Project reset complete!'"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",

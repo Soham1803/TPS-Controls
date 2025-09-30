@@ -194,6 +194,59 @@ Contributors will be:
 - Start a discussion for general questions
 - Check existing issues before creating new ones
 
+## 🔧 Troubleshooting
+
+### Lock File Issues
+
+If you encounter `ERR_PNPM_NO_LOCKFILE` or incompatible lockfile errors:
+
+```bash
+# Quick fix - regenerate lock file
+pnpm run reset
+
+# Or manually
+rm pnpm-lock.yaml
+pnpm install
+```
+
+### After Package Rename
+
+When the package name changes, the lock file may become incompatible:
+
+```bash
+# Clean everything and start fresh
+rm -rf node_modules demo/node_modules package/node_modules pnpm-lock.yaml
+pnpm install
+git add pnpm-lock.yaml
+git commit -m "fix: regenerate lock file after package changes"
+```
+
+### Common CI Errors
+
+**`Cannot install with "frozen-lockfile" because pnpm-lock.yaml is absent`**
+- This happens when the lock file is missing or incompatible
+- Solution: Regenerate the lock file locally and commit it
+
+**`Ignoring not compatible lockfile`**
+- The lock file was generated with a different package configuration
+- Solution: Use `pnpm run reset` to clean and regenerate
+
+### Setup Scripts
+
+```bash
+# First time setup
+pnpm run setup
+
+# Reset everything (useful for troubleshooting)
+pnpm run reset
+
+# Check lock file status
+pnpm run check:lockfiles
+
+# Clean conflicting lock files
+pnpm run clean:lockfiles
+```
+
 ---
 
 **Thank you for contributing!** Every contribution, no matter how small, helps make this project better. 🚀
