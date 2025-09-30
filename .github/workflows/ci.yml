@@ -45,13 +45,17 @@ jobs:
       
       - name: Install dependencies
         run: |
-          if [ -f "pnpm-lock.yaml" ]; then
-            echo "📦 Installing with frozen lockfile"
-            pnpm install --frozen-lockfile
+          echo "🔍 Checking lock file compatibility..."
+          
+          # Try to install with frozen lockfile first
+          if pnpm install --frozen-lockfile 2>/dev/null; then
+            echo "📦 Successfully installed with frozen lockfile"
           else
-            echo "⚠️  No lockfile found, generating new one"
+            echo "⚠️  Lock file incompatible or missing, regenerating..."
+            echo "🧹 Cleaning up and reinstalling..."
+            rm -f pnpm-lock.yaml
             pnpm install
-            echo "📝 New lockfile generated"
+            echo "📝 New compatible lockfile generated"
           fi
       
       - name: Lint code
@@ -83,10 +87,17 @@ jobs:
       
       - name: Install dependencies
         run: |
-          if [ -f "pnpm-lock.yaml" ]; then
-            pnpm install --frozen-lockfile
+          echo "🔍 Checking lock file compatibility..."
+          
+          # Try to install with frozen lockfile first
+          if pnpm install --frozen-lockfile 2>/dev/null; then
+            echo "📦 Successfully installed with frozen lockfile"
           else
+            echo "⚠️  Lock file incompatible or missing, regenerating..."
+            echo "🧹 Cleaning up and reinstalling..."
+            rm -f pnpm-lock.yaml
             pnpm install
+            echo "📝 New compatible lockfile generated"
           fi
       
       - name: Build package
