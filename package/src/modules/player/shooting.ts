@@ -22,12 +22,12 @@ export function handleShooting({
 }: ShootingParams): void {
   // Update shoot ray direction
   const newDirection = camera.getWorldDirection(new THREE.Vector3());
-  shootRayDirection.current.copy(newDirection);
+  shootRayDirection.current!.copy(newDirection);
 
   const rayOrigin = new THREE.Vector3().copy(camera.position);
 
   const shootRay = world.castRay(
-    new RAPIER.Ray(rayOrigin, shootRayDirection.current), 
+    new RAPIER.Ray(rayOrigin, shootRayDirection.current!), 
     100, 
     true
   );
@@ -45,7 +45,7 @@ export function handleShooting({
         const impulseStrength = 0.025;
         const impulsePoint = new THREE.Vector3()
           .copy(rayOrigin)
-          .add(shootRayDirection.current.multiplyScalar(shootRay.timeOfImpact));
+          .add(shootRayDirection.current!.multiplyScalar(shootRay.timeOfImpact));
 
         if (dotRef.current) {
           dotRef.current.position.copy(impulsePoint);
@@ -54,9 +54,9 @@ export function handleShooting({
         if (shoot.current) {
           hitRigidBody.applyImpulseAtPoint(
             {
-              x: shootRayDirection.current.x * impulseStrength,
-              y: shootRayDirection.current.y * impulseStrength,
-              z: shootRayDirection.current.z * impulseStrength
+              x: shootRayDirection.current!.x * impulseStrength,
+              y: shootRayDirection.current!.y * impulseStrength,
+              z: shootRayDirection.current!.z * impulseStrength
             },
             impulsePoint,
             true

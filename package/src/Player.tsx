@@ -96,7 +96,10 @@ export function Player({...props }: PlayerProps) {
         mouseRotationRef.current.x += event.movementX * MOUSE_SENSITIVITY;
         mouseRotationRef.current.y += event.movementY * MOUSE_SENSITIVITY;
 
-        mouseRotationRef.current.y = Math.max(-Math.PI/6, Math.min(Math.PI / 3, mouseRotationRef.current.y)); // Clamp vertical rotation
+        const elevation = -Math.PI/5;
+        const depression = Math.PI/3;
+
+        mouseRotationRef.current.y = Math.max(elevation, Math.min(depression, mouseRotationRef.current.y)); // Clamp vertical rotation
       }
     }
 
@@ -189,7 +192,7 @@ export function Player({...props }: PlayerProps) {
       rightPalmBone.current = bones[39]; // Right Index Finger
 
       // Log bone names to help identify the correct hand bones
-      console.log('Available bones:', bones.map(bone => bone.name));
+      console.log('Available bones:', bones.map((bone: THREE.Bone) => bone.name));
     }
   }, [bones]);
 
@@ -383,9 +386,9 @@ export function Player({...props }: PlayerProps) {
         visible={false}
       />
 
-      <mesh ref={dotRef}>
+      <mesh ref={dotRef} visible={false}>
         <sphereGeometry args={[0.1, 16, 16]} />
-        <meshStandardMaterial visible={false} color='red' opacity={1} />
+        <meshStandardMaterial color='red' opacity={1} />
       </mesh>
     </group>
   )

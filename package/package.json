@@ -1,0 +1,64 @@
+{
+  "name": "@soham1803/third-person-controls",
+  "version": "1.0.0",
+  "description": "Modern third-person shooter controls for React Three Fiber",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "react-three-fiber",
+    "three.js",
+    "third-person",
+    "game-controls",
+    "shooter",
+    "physics",
+    "rapier",
+    "typescript"
+  ],
+  "author": "Soham Panchal",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Soham1803/third-person-shooter-controls.git"
+  },
+  "peerDependencies": {
+    "@dimforge/rapier3d-compat": ">=0.11.0",
+    "@react-three/drei": ">=9.0.0",
+    "@react-three/fiber": ">=8.0.0",
+    "@react-three/rapier": ">=1.0.0",
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0",
+    "three": ">=0.150.0",
+    "three-stdlib": ">=2.0.0"
+  },
+  "devDependencies": {
+    "@dimforge/rapier3d-compat": "^0.19.0",
+    "@rollup/plugin-commonjs": "^24.0.0",
+    "@rollup/plugin-node-resolve": "^15.0.0",
+    "@rollup/plugin-typescript": "^11.0.0",
+    "@types/react": "^18.2.0",
+    "@types/three": "^0.150.0",
+    "rollup": "^3.20.0",
+    "rollup-plugin-dts": "^5.3.0",
+    "rollup-plugin-peer-deps-external": "^2.2.4",
+    "three-stdlib": "^2.36.0",
+    "tslib": "^2.5.0",
+    "typescript": "^5.0.0"
+  }
+}
