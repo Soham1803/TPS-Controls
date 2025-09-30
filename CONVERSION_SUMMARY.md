@@ -20,8 +20,6 @@ third-person-controls/
 │   └── index.html                # Demo HTML
 ├── 📚 docs/                      # Documentation
 │   └── getting-started.md        # Getting started guide
-├── 🧪 examples/                  # Usage examples
-│   └── basic/                    # Basic usage example
 ├── .github/                      # GitHub automation
 │   ├── workflows/ci.yml          # CI/CD pipeline
 │   └── ISSUE_TEMPLATE/           # Issue templates

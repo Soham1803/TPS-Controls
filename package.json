@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "pnpm --filter demo dev",
-    "dev:watch": "concurrently \"pnpm --filter @soham1803/third-person-controls dev\" \"pnpm --filter demo dev\"",
-    "build": "pnpm --filter @soham1803/third-person-controls build",
+    "dev:watch": "concurrently \"pnpm --filter tps-controls dev\" \"pnpm --filter demo dev\"",
+    "build": "pnpm --filter tps-controls build",
     "build:demo": "pnpm --filter demo build",
-    "publish:package": "pnpm run build && pnpm --filter @soham1803/third-person-controls publish",
+    "publish:package": "pnpm run build && pnpm --filter tps-controls publish",
     "test": "pnpm --filter '*' test",
     "lint": "eslint . --ext .ts,.tsx",
     "format": "prettier --write ."

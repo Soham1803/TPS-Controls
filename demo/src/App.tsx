@@ -1,7 +1,7 @@
 import React from 'react';
 import { KeyboardControls, OrbitControls } from "@react-three/drei"
 import { Canvas } from "@react-three/fiber"
-import { Player } from "@soham1803/third-person-controls"
+import { Player } from "tps-controls"
 import { Physics, RigidBody } from '@react-three/rapier';
 
 function App() {
@@ -54,6 +54,19 @@ function App() {
               <meshStandardMaterial color={'blue'} />
             </mesh>
           </RigidBody>
+          {/* Player with default assets - for custom assets, you can use:
+          <Player 
+            modelPath="/models/your-character.glb"
+            animationPaths={{
+              idle: "/animations/your-idle.fbx",
+              walkForward: "/animations/your-walk.fbx",
+              // ... other animations
+            }}
+            audioPath="/sfx/your-shot.mp3"
+            mass={8}
+            friction={0.8}
+          />
+          */}
           <Player />
         </Physics>
       </Canvas>

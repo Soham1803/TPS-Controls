@@ -1,5 +1,5 @@
 {
-  "name": "@soham1803/third-person-controls",
+  "name": "tps-controls",
   "version": "1.0.0",
   "description": "Modern third-person shooter controls for React Three Fiber",
   "main": "dist/index.js",

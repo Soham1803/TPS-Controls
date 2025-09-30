@@ -18,7 +18,7 @@ A modern, web-based third-person shooter game built with **React Three Fiber**, 
 
 ### Prerequisites
 
-- Node.js 16+ and npm/pnpm/yarn
+- Node.js 16+ and pnpm (recommended) or npm/yarn
 - Modern web browser with WebGL support
 
 ### Installation
@@ -31,18 +31,18 @@ A modern, web-based third-person shooter game built with **React Three Fiber**, 
 
 2. **Install dependencies**
    ```bash
-   npm install
-   # or
    pnpm install
+   # or alternatively
+   npm install
    # or
    yarn install
    ```
 
 3. **Start the development server**
    ```bash
-   npm run dev
-   # or
    pnpm run dev
+   # or alternatively
+   npm run dev
    # or
    yarn dev
    ```
@@ -63,24 +63,42 @@ A modern, web-based third-person shooter game built with **React Three Fiber**, 
 ## 🏗️ Project Structure
 
 ```
-src/
-├── Player.tsx              # Main player component
-├── modules/player/         # Modular player systems
-│   ├── constants.ts        # Game configuration
-│   ├── types.ts           # TypeScript interfaces
-│   ├── camera.ts          # Camera positioning & collision
-│   ├── movement.ts        # Player movement logic
-│   ├── jump.ts            # Jump mechanics
-│   ├── shooting.ts        # Weapon system
-│   ├── recoil.ts          # Camera recoil effects
-│   ├── muzzleFlash.ts     # Visual effects
-│   ├── physics.ts         # Physics integration
-│   └── useAnimationSetup.ts # Animation management
-public/
-├── models/                # 3D models (.glb)
-├── animations/            # Animation files (.fbx)
-├── sfx/                   # Sound effects
-└── vfx/                   # Visual effect textures
+├── package/                    # 📦 NPM Package Source
+│   ├── src/
+│   │   ├── Player.tsx          # Main player component
+│   │   ├── index.ts            # Package entry point
+│   │   └── modules/player/     # Modular player systems
+│   │       ├── constants.ts    # Game configuration
+│   │       ├── types.ts        # TypeScript interfaces
+│   │       ├── camera.ts       # Camera positioning & collision
+│   │       ├── movement.ts     # Player movement logic
+│   │       ├── jump.ts         # Jump mechanics
+│   │       ├── shooting.ts     # Weapon system
+│   │       ├── recoil.ts       # Camera recoil effects
+│   │       ├── muzzleFlash.ts  # Visual effects
+│   │       ├── physics.ts      # Physics integration
+│   │       ├── textures.ts     # Texture utilities
+│   │       └── useAnimationSetup.ts # Animation management
+│   ├── dist/                   # Built package files
+│   ├── package.json            # Package configuration
+│   └── README.md               # Package documentation
+├── demo/                       # 🎮 Live Demo Application
+│   ├── src/
+│   │   ├── App.tsx             # Demo app component
+│   │   └── CustomPlayerExample.tsx # Usage examples
+│   ├── public/
+│   │   ├── models/             # 3D models (.glb)
+│   │   ├── animations/         # Animation files (.fbx)
+│   │   ├── sfx/                # Sound effects
+│   │   ├── vfx/                # Visual effect textures
+│   │   └── svgs/               # UI assets
+│   └── package.json            # Demo app configuration
+├── docs/                       # 📚 Documentation
+│   ├── getting-started.md      # Quick start guide
+│   └── asset-integration.md    # Asset customization guide
+├── package.json                # Workspace configuration
+├── pnpm-workspace.yaml         # pnpm workspace setup
+└── README.md                   # This file
 ```
 
 ## 🤝 Contributing

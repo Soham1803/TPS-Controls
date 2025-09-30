@@ -50,9 +50,6 @@ importers:
       '@react-three/rapier':
         specifier: ^1.1.0
         version: 1.5.0(@react-three/fiber@8.18.0(@types/react@18.3.25)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(three@0.153.0))(react@18.3.1)(three@0.153.0)
-      '@soham1803/third-person-controls':
-        specifier: file:../package
-        version: link:../package
       react:
         specifier: ^18.2.0
         version: 18.3.1
@@ -65,6 +62,9 @@ importers:
       three-stdlib:
         specifier: ^2.36.0
         version: 2.36.0(three@0.153.0)
+      tps-controls:
+        specifier: file:../package
+        version: link:../package
     devDependencies:
       '@types/react':
         specifier: ^18.2.0

@@ -28,7 +28,28 @@ export type GLTFResult = GLTF & {
 };
 
 export interface PlayerProps extends React.ComponentProps<'group'> {
-  // Future props can be added here as needed
+  // Asset paths - all optional with defaults
+  modelPath?: string;
+  animationPaths?: {
+    idle?: string;
+    walkForward?: string;
+    walkBackward?: string;
+    runForward?: string;
+    runBackward?: string;
+    strafeLeft?: string;
+    strafeRight?: string;
+    jumpStart?: string;
+    jumpEnd?: string;
+  };
+  audioPath?: string;
+  
+  // Physics and behavior props
+  colliderArgs?: [height: number, radius: number];
+  mass?: number;
+  restitution?: number;
+  friction?: number;
+  linearDamping?: number;
+  angularDamping?: number;
 }
 
 export interface PlayerState {

@@ -12,11 +12,13 @@ Thank you for your interest in contributing! This guide will help you get starte
    ```
 3. **Install dependencies**: 
    ```bash
-   npm install
+   pnpm install
    ```
 4. **Start development**: 
    ```bash
-   npm run dev
+   pnpm run dev:watch    # Recommended: Auto-rebuilds package + starts demo
+   # or
+   pnpm run dev          # Just starts demo app
    ```
 
 ## 🏗️ Project Structure
@@ -26,12 +28,16 @@ Thank you for your interest in contributing! This guide will help you get starte
 - `docs/` - Documentation
 - `examples/` - Usage examples
 
+### Package Manager
+
+This project uses **pnpm** as the preferred package manager due to its efficiency with monorepos and workspace management. While npm and yarn will work, we recommend using pnpm for consistency with the development environment.
+
 ## 🧪 Development Workflow
 
 1. **Create a feature branch**: `git checkout -b feature/amazing-feature`
 2. **Make changes** in `package/src/`
-3. **Test in the demo**: `npm run dev`
-4. **Build package**: `npm run build`
+3. **Test in real-time**: `pnpm run dev:watch` (automatically rebuilds package when you edit source files)
+4. **Build package**: `pnpm run build` (for final testing)
 5. **Commit changes**: `git commit -m 'Add amazing feature'`
 6. **Push to your fork**: `git push origin feature/amazing-feature`
 7. **Create Pull Request**
@@ -87,20 +93,28 @@ Thank you for your interest in contributing! This guide will help you get starte
 
 ### Development
 ```bash
-npm run dev        # Start demo app
+pnpm run dev:watch  # 🚀 Recommended: Auto-rebuilds package + starts demo
+pnpm run dev        # Just starts demo app (requires manual rebuilds)
 ```
 
 ### Building
 ```bash
-npm run build      # Build package
-npm run build:demo # Build demo
+pnpm run build      # Build package
+pnpm run build:demo # Build demo
 ```
 
 ### Testing
 ```bash
-npm run lint       # Lint code
-npm test           # Run tests (when available)
+pnpm run lint       # Lint code
+pnpm test           # Run tests (when available)
 ```
+
+### 💡 Pro Tip
+Use `pnpm run dev:watch` for the best development experience! It automatically:
+- Watches for changes in `package/src/`
+- Rebuilds the package when files change
+- Hot reloads the demo application
+- Shows both package and demo logs in one terminal
 
 ## 🐛 Bug Reports
 

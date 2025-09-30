@@ -1,5 +1,5 @@
 // Main exports
-export { Player } from './Player';
+export { Player, preloadPlayerAssets } from './Player';
 
 // Module exports
 export * from './modules/player/types';

@@ -25,15 +25,26 @@ import { createMuzzleFlashTexture } from './modules/player/textures'
 import { MOUSE_SENSITIVITY, MUZZLE_FLASH_LIGHT_DISTANCE } from './modules/player/constants'
 
 // Modify the Player component signature
-export function Player({...props }: PlayerProps) {
+export function Player({
+  modelPath = '/models/player.glb',
+  animationPaths,
+  audioPath = '/sfx/pistol-shot.mp3',
+  colliderArgs = [0.5, 0.3],
+  mass = 5,
+  restitution = 0.3,
+  friction = 0.5,
+  linearDamping = 0.1,
+  angularDamping = 0.1,
+  ...props 
+}: PlayerProps) {
   const group = React.useRef<THREE.Group>(null)
   const mouseRotationRef = React.useRef({x: 0, y: 0});
-  const { scene } = useGLTF('/models/player.glb') as unknown as GLTFResult
+  const { scene } = useGLTF(modelPath) as unknown as GLTFResult
   const clone = React.useMemo(() => SkeletonUtils.clone(scene), [scene])
   const { nodes, materials } = useGraph(clone) as unknown as GLTFResult
   
-  // Use the modular animation setup
-  const { actions, mixer, animationClips } = useAnimationSetup(clone);
+  // Use the modular animation setup with custom paths
+  const { actions, mixer, animationClips } = useAnimationSetup(clone, animationPaths);
   
   const [wait, setWait] = React.useState(false);
   const [isJumping, setIsJumping] = React.useState(false);
@@ -333,17 +344,17 @@ export function Player({...props }: PlayerProps) {
         ref={controls}
         position={props.position}
         type="dynamic"
-        mass={5}
-        restitution={0.3}
-        friction={0.5}
-        linearDamping={0.1}
-        angularDamping={0.1}
+        mass={mass}
+        restitution={restitution}
+        friction={friction}
+        linearDamping={linearDamping}
+        angularDamping={angularDamping}
         canSleep={false}
         colliders={false}
         enabledRotations={[false, false, false]}
         enabledTranslations={[true, true, true]}
       >
-        <CapsuleCollider rotation={[0, 0, 0]} args={[0.5, 0.3]} position={[0, 0.8, 0]} />
+        <CapsuleCollider rotation={[0, 0, 0]} args={colliderArgs} position={[0, 0.8, 0]} />
         <group rotation={[0, 0, 0]} ref={group} dispose={null}>
           <group name="Scene">
             <group castShadow receiveShadow name="Armature" rotation={[0, 0, 0]} scale={0.01}>
@@ -355,7 +366,7 @@ export function Player({...props }: PlayerProps) {
         </group>
 
       <PositionalAudio
-        url="/sfx/pistol-shot.mp3"
+        url={audioPath}
         ref={shotSfxRef}
         distance={8}
         loop={false}
@@ -394,4 +405,10 @@ export function Player({...props }: PlayerProps) {
   )
 }
 
-useGLTF.preload('/models/player.glb')
+// Helper function to preload assets
+export function preloadPlayerAssets(modelPath = '/models/player.glb') {
+  useGLTF.preload(modelPath);
+}
+
+// Preload default assets
+preloadPlayerAssets();

@@ -2,17 +2,48 @@ import * as THREE from 'three';
 import React from 'react';
 import { useFBX } from '@react-three/drei';
 
-export function useAnimationSetup(clone: THREE.Object3D) {
+interface AnimationPaths {
+  idle?: string;
+  walkForward?: string;
+  walkBackward?: string;
+  runForward?: string;
+  runBackward?: string;
+  strafeLeft?: string;
+  strafeRight?: string;
+  jumpStart?: string;
+  jumpEnd?: string;
+}
+
+// Default animation paths
+const DEFAULT_ANIMATIONS: Required<AnimationPaths> = {
+  idle: '/animations/pistol-idle.fbx',
+  walkForward: '/animations/pistol-walk.fbx',
+  walkBackward: '/animations/pistol-walk-backward.fbx',
+  runForward: '/animations/pistol-run.fbx',
+  runBackward: '/animations/pistol-run-backward.fbx',
+  strafeLeft: '/animations/pistol-strafe-left.fbx',
+  strafeRight: '/animations/pistol-strafe-right.fbx',
+  jumpStart: '/animations/pistol-jump-1.fbx',
+  jumpEnd: '/animations/pistol-jump-2.fbx',
+};
+
+export function useAnimationSetup(clone: THREE.Object3D, customAnimations?: AnimationPaths) {
+  // Merge custom animations with defaults
+  const animationPaths = React.useMemo(() => ({
+    ...DEFAULT_ANIMATIONS,
+    ...customAnimations,
+  }), [customAnimations]);
+
   // Import animation from FBX
-  const { animations: idle } = useFBX('/animations/pistol-idle.fbx');
-  const { animations: walkAhead } = useFBX('/animations/pistol-walk.fbx');
-  const { animations: walkBackward } = useFBX('/animations/pistol-walk-backward.fbx');
-  const { animations: runAhead } = useFBX('/animations/pistol-run.fbx');
-  const { animations: runBackward } = useFBX('/animations/pistol-run-backward.fbx');
-  const { animations: strafeLeft } = useFBX('/animations/pistol-strafe-left.fbx');
-  const { animations: strafeRight } = useFBX('/animations/pistol-strafe-right.fbx');
-  const { animations: jump1 } = useFBX('/animations/pistol-jump-1.fbx');
-  const { animations: jump2 } = useFBX('/animations/pistol-jump-2.fbx');
+  const { animations: idle } = useFBX(animationPaths.idle);
+  const { animations: walkAhead } = useFBX(animationPaths.walkForward);
+  const { animations: walkBackward } = useFBX(animationPaths.walkBackward);
+  const { animations: runAhead } = useFBX(animationPaths.runForward);
+  const { animations: runBackward } = useFBX(animationPaths.runBackward);
+  const { animations: strafeLeft } = useFBX(animationPaths.strafeLeft);
+  const { animations: strafeRight } = useFBX(animationPaths.strafeRight);
+  const { animations: jump1 } = useFBX(animationPaths.jumpStart);
+  const { animations: jump2 } = useFBX(animationPaths.jumpEnd);
 
   // Clone and rename all animations in a single useMemo
   const animationClips = React.useMemo(() => {

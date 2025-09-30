@@ -19,7 +19,11 @@ Modern, reusable third-person shooter controls for React Three Fiber application
 ## 📦 Installation
 
 ```bash
-npm install @soham1803/third-person-controls
+# Preferred
+pnpm add tps-controls
+
+# Or alternatively
+npm install tps-controls
 ```
 
 ### Peer Dependencies
@@ -27,16 +31,22 @@ npm install @soham1803/third-person-controls
 Make sure you have these installed in your project:
 
 ```bash
+# Preferred
+pnpm add react react-dom @react-three/fiber @react-three/drei @react-three/rapier three
+
+# Or alternatively
 npm install react react-dom @react-three/fiber @react-three/drei @react-three/rapier three
 ```
 
 ## 🚀 Quick Start
 
+### Basic Usage (with default assets)
+
 ```tsx
 import React from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
-import { Player } from '@soham1803/third-person-controls';
+import { Player } from 'tps-controls';
 
 function App() {
   return (
@@ -48,6 +58,158 @@ function App() {
         <Physics>
           {/* Ground */}
           <mesh position={[0, -0.5, 0]}>
+            <boxGeometry args={[100, 1, 100]} />
+            <meshStandardMaterial color="gray" />
+          </mesh>
+          
+          {/* Player with default assets and basic physics customization */}
+          <Player 
+            position={[0, 1, 0]}
+            mass={6}              // Slightly heavier than default
+            friction={0.7}        // More grip on surfaces
+            restitution={0.2}     // Less bouncy
+          />
+        </Physics>
+      </Canvas>
+    </div>
+  );
+}
+```
+
+### Custom Assets
+
+You can easily use your own 3D model, animations, and audio files:
+
+```tsx
+import React from 'react';
+import { Canvas } from '@react-three/fiber';
+import { Physics } from '@react-three/rapier';
+import { Player, preloadPlayerAssets } from 'tps-controls';
+
+// Preload your custom assets for better performance
+preloadPlayerAssets('/models/my-character.glb');
+
+function App() {
+  return (
+    <div style={{ width: '100vw', height: '100vh' }}>
+      <Canvas>
+        <ambientLight intensity={0.5} />
+        <directionalLight position={[10, 10, 5]} intensity={1} />
+        
+        <Physics>
+          <mesh position={[0, -0.5, 0]}>
+            <boxGeometry args={[100, 1, 100]} />
+            <meshStandardMaterial color="gray" />
+          </mesh>
+          
+          <Player 
+            position={[0, 1, 0]}
+            modelPath="/models/my-character.glb"
+            animationPaths={{
+              idle: "/animations/my-idle.fbx",
+              walkForward: "/animations/my-walk.fbx",
+              runForward: "/animations/my-run.fbx",
+              jumpStart: "/animations/my-jump-start.fbx",
+              jumpEnd: "/animations/my-jump-end.fbx"
+              // ... other animations are optional and will use defaults
+            }}
+            audioPath="/sfx/my-gun-shot.mp3"
+            // Customize physics behavior
+            mass={8}                    // Heavier character = more momentum
+            friction={0.8}              // Higher friction = less sliding
+            restitution={0.1}           // Lower bounce factor
+            linearDamping={0.2}         // Higher damping = stops faster
+            angularDamping={0.2}        // Rotation damping
+            colliderArgs={[0.6, 0.4]}   // [height, radius] - larger collider
+          />
+        </Physics>
+      </Canvas>
+    </div>
+  );
+}
+```
+
+## 🎨 Customization Options
+
+### Physics Behavior
+
+The Player component uses Rapier physics and provides several props to customize the physical behavior:
+
+```tsx
+<Player 
+  // Basic physics props
+  mass={5}                    // Character weight (affects momentum and jump height)
+  friction={0.5}              // Surface grip (0 = ice, 1 = sticky)
+  restitution={0.3}           // Bounciness (0 = no bounce, 1 = super bouncy)
+  linearDamping={0.1}         // Movement resistance (higher = stops faster)
+  angularDamping={0.1}        // Rotation resistance
+  colliderArgs={[0.5, 0.3]}   // Collision shape [height, radius]
+  
+  // Examples of different character feels:
+  
+  // Heavy tank-like character
+  mass={12}
+  friction={0.9}
+  linearDamping={0.3}
+  
+  // Light, agile character  
+  mass={3}
+  friction={0.4}
+  linearDamping={0.05}
+  
+  // Bouncy character
+  restitution={0.8}
+  mass={4}
+/>
+```
+
+### PlayerProps
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `modelPath` | `string` | `'/models/player.glb'` | Path to your 3D model (.glb/.gltf) |
+| `animationPaths` | `AnimationPaths` | Default pistol animations | Custom animation file paths |
+| `audioPath` | `string` | `'/sfx/pistol-shot.mp3'` | Path to shooting sound effect |
+| `colliderArgs` | `[number, number]` | `[0.5, 0.3]` | Capsule collider [height, radius] |
+| `mass` | `number` | `5` | Physics body mass |
+| `restitution` | `number` | `0.3` | Bounce factor (0-1) |
+| `friction` | `number` | `0.5` | Surface friction (0-1) |
+| `linearDamping` | `number` | `0.1` | Movement damping |
+| `angularDamping` | `number` | `0.1` | Rotation damping |
+
+### Animation Paths
+
+```tsx
+interface AnimationPaths {
+  idle?: string;           // Character standing still
+  walkForward?: string;    // Walking forward
+  walkBackward?: string;   // Walking backward  
+  runForward?: string;     // Running forward
+  runBackward?: string;    // Running backward
+  strafeLeft?: string;     // Side-stepping left
+  strafeRight?: string;    // Side-stepping right
+  jumpStart?: string;      // Jump take-off animation
+  jumpEnd?: string;        // Jump landing animation
+}
+```
+
+## 🎯 Asset Requirements
+
+### 3D Model (.glb/.gltf)
+- Rigged humanoid character with standard bone structure
+- Compatible with mixamo animations
+- Optimized for real-time rendering
+
+### Animations (.fbx)
+- Mixamo-compatible bone structure
+- Loop-ready animations (except jump animations)
+- Consistent frame rates for smooth transitions
+
+### Audio (.mp3/.wav/.ogg)
+- Short duration shooting sound effect
+- Optimized file size for web delivery
+
+## 🎮 Controls
             <boxGeometry args={[100, 1, 100]} />
             <meshStandardMaterial color="gray" />
           </mesh>
@@ -108,7 +270,7 @@ import {
   MovementParams,
   CameraParams,
   JumpParams
-} from '@soham1803/third-person-controls';
+} from 'tps-controls';
 ```
 
 ## 🏗️ Architecture
@@ -127,7 +289,7 @@ The package is built with a modular architecture:
 ### Custom Animation Setup
 
 ```tsx
-import { useAnimationSetup } from '@soham1803/third-person-controls';
+import { useAnimationSetup } from 'tps-controls';
 
 function CustomPlayer() {
   const { actions, mixer } = useAnimationSetup(scene);
@@ -139,7 +301,7 @@ function CustomPlayer() {
 ### Manual Camera Control
 
 ```tsx
-import { updateCamera } from '@soham1803/third-person-controls';
+import { updateCamera } from 'tps-controls';
 
 // In your component
 updateCamera({
@@ -171,4 +333,4 @@ MIT License - see [LICENSE](https://github.com/Soham1803/third-person-shooter-co
 - [Demo](https://your-demo-url.com)
 - [GitHub](https://github.com/Soham1803/third-person-shooter-controls)
 - [Issues](https://github.com/Soham1803/third-person-shooter-controls/issues)
-- [NPM](https://www.npmjs.com/package/@soham1803/third-person-controls)
+- [NPM](https://www.npmjs.com/package/tps-controls)
