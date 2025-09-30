@@ -7,10 +7,20 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
 dist
 dist-ssr
 *.local
+
+# Lock file management - only pnpm-lock.yaml should be committed
+package-lock.json
+yarn.lock
+.yarn.lock
+.yarn/
+
+# Keep pnpm-lock.yaml (don't ignore it)
+# pnpm-lock.yaml
 
 # Package build output
 package/dist/

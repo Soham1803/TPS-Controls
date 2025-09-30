@@ -10,7 +10,9 @@
     "publish:package": "pnpm run build && pnpm --filter tps-controls publish",
     "test": "pnpm --filter '*' test",
     "lint": "eslint . --ext .ts,.tsx",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "clean:lockfiles": "rm -f package-lock.json yarn.lock .yarn.lock && echo '✅ Cleaned conflicting lock files. Run: pnpm install'",
+    "check:lockfiles": "node scripts/check-lockfiles.js"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",

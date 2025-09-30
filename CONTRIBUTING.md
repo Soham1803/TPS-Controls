@@ -30,7 +30,49 @@ Thank you for your interest in contributing! This guide will help you get starte
 
 ### Package Manager
 
-This project uses **pnpm** as the preferred package manager due to its efficiency with monorepos and workspace management. While npm and yarn will work, we recommend using pnpm for consistency with the development environment.
+This project uses **pnpm** as the preferred package manager due to its efficiency with monorepos and workspace management.
+
+#### ⚠️ Important: Lock File Management
+
+**DO NOT commit these files:**
+- `package-lock.json` (npm)
+- `yarn.lock` (Yarn)
+- `.yarn.lock` (Yarn)
+
+**ONLY commit:**
+- `pnpm-lock.yaml` (pnpm)
+
+#### If You Accidentally Create Conflicting Lock Files:
+
+```bash
+# Clean up conflicting lock files
+pnpm run clean:lockfiles
+
+# Reinstall with pnpm
+pnpm install
+```
+
+#### Why pnpm?
+- **Faster installations** with efficient disk space usage
+- **Better monorepo support** with workspaces
+- **Stricter dependency resolution** preventing phantom dependencies
+- **Symlink-based node_modules** structure
+
+#### Check Lock File Status:
+```bash
+# Verify lock file configuration
+pnpm run check:lockfiles
+```
+
+#### Optional: Set Up Pre-commit Hook
+To automatically check lock files before each commit:
+```bash
+# Copy the example hook
+cp scripts/pre-commit-hook-example.sh .git/hooks/pre-commit
+
+# Make it executable
+chmod +x .git/hooks/pre-commit
+```
 
 ## 🧪 Development Workflow
 
