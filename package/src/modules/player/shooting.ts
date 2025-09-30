@@ -3,7 +3,7 @@ import RAPIER from '@dimforge/rapier3d-compat';
 import type { RapierRigidBody } from '@react-three/rapier';
 
 export interface ShootingParams {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   world: any; // Use any to avoid version conflicts between different RAPIER versions
   camera: THREE.Camera;
   controls: React.RefObject<RapierRigidBody | null>;

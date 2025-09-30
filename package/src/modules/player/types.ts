@@ -139,7 +139,7 @@ export interface CameraParams {
   pitch: number;
   yaw: number;
   camera: THREE.Camera;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   world?: any; // Optional world for collision detection
 }
 

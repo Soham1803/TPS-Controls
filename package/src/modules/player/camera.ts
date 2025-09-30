@@ -7,7 +7,7 @@ import { DEFAULT_CAMERA_FOV, ZOOM_CAMERA_FOV } from './constants';
 function checkCameraCollision(
   playerPosition: THREE.Vector3, 
   cameraPosition: THREE.Vector3, 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   world: any, // RAPIER world - using any to avoid version conflicts
   minDistance = 0.2 // Minimum distance from player when collision occurs
 ): { position: THREE.Vector3; hasCollision: boolean } {

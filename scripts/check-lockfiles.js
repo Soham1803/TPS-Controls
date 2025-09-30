@@ -1,5 +1,5 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 const conflictingFiles = ['package-lock.json', 'yarn.lock', '.yarn.lock'];
 const requiredFile = 'pnpm-lock.yaml';
@@ -29,7 +29,7 @@ if (hasConflicts) {
   console.log('\n🚨 CONFLICT DETECTED!');
   console.log('This repository uses pnpm for package management.');
   console.log('Please remove conflicting lock files:');
-  console.log('  npm run clean:lockfiles');
+  console.log('  pnpm run clean:lockfiles');
   console.log('  pnpm install');
   process.exit(1);
 }
