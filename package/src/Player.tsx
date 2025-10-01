@@ -25,11 +25,14 @@ import { createMuzzleFlashTexture } from './modules/player/textures'
 import { MOUSE_SENSITIVITY, MUZZLE_FLASH_LIGHT_DISTANCE } from './modules/player/constants'
 import './utils/preload' // Import to trigger preloading
 
+// CDN-based default assets for zero-friction integration
+const CDN_BASE = 'https://cdn.jsdelivr.net/npm/tps-controls@latest/public';
+
 // Modify the Player component signature
 export function Player({
-  modelPath = '/models/player.glb',
+  modelPath = `${CDN_BASE}/models/player.glb`,
   animationPaths,
-  audioPath = '/sfx/pistol-shot.mp3',
+  audioPath = `${CDN_BASE}/sfx/pistol-shot.mp3`,
   colliderArgs = [0.5, 0.3],
   mass = 5,
   restitution = 0.3,

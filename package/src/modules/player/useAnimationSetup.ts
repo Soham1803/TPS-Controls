@@ -14,17 +14,19 @@ interface AnimationPaths {
   jumpEnd?: string;
 }
 
-// Default animation paths
+// CDN-based default animation paths for zero-friction integration
+const CDN_BASE = 'https://cdn.jsdelivr.net/npm/tps-controls@latest/public';
+
 const DEFAULT_ANIMATIONS: Required<AnimationPaths> = {
-  idle: '/animations/pistol-idle.fbx',
-  walkForward: '/animations/pistol-walk.fbx',
-  walkBackward: '/animations/pistol-walk-backward.fbx',
-  runForward: '/animations/pistol-run.fbx',
-  runBackward: '/animations/pistol-run-backward.fbx',
-  strafeLeft: '/animations/pistol-strafe-left.fbx',
-  strafeRight: '/animations/pistol-strafe-right.fbx',
-  jumpStart: '/animations/pistol-jump-1.fbx',
-  jumpEnd: '/animations/pistol-jump-2.fbx',
+  idle: `${CDN_BASE}/animations/pistol-idle.fbx`,
+  walkForward: `${CDN_BASE}/animations/pistol-walk.fbx`,
+  walkBackward: `${CDN_BASE}/animations/pistol-walk-backward.fbx`,
+  runForward: `${CDN_BASE}/animations/pistol-run.fbx`,
+  runBackward: `${CDN_BASE}/animations/pistol-run-backward.fbx`,
+  strafeLeft: `${CDN_BASE}/animations/pistol-strafe-left.fbx`,
+  strafeRight: `${CDN_BASE}/animations/pistol-strafe-right.fbx`,
+  jumpStart: `${CDN_BASE}/animations/pistol-jump-1.fbx`,
+  jumpEnd: `${CDN_BASE}/animations/pistol-jump-2.fbx`,
 };
 
 export function useAnimationSetup(clone: THREE.Object3D, customAnimations?: AnimationPaths) {

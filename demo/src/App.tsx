@@ -13,7 +13,6 @@ const getAssetPath = (path: string) => {
 
 function App() {
 
-
   return (
     <div>
       <span
@@ -69,11 +68,10 @@ function App() {
           {/* Import comprehensive shooting range environment */}
           <Environment />
           
-          {/* Player with shadow casting */}
+          {/* Player - uses default assets from package */}
           <Player 
             castShadow 
             receiveShadow 
-            modelPath={getAssetPath('models/player.glb')}
           />
         </Physics>
       </Canvas>
