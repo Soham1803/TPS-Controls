@@ -36,8 +36,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build package
-        run: pnpm --filter package build
+      - name: Build package with types
+        run: pnpm --filter tps-controls build
 
       - name: Build demo for GitHub Pages
         run: pnpm --filter demo build:github
