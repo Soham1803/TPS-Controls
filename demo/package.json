@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:github": "tsc -b && vite build --base=/TPS-Controls/",
     "preview": "vite preview"
   },
   "dependencies": {

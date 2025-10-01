@@ -8,6 +8,8 @@
     "dev:watch": "concurrently \"pnpm --filter tps-controls dev\" \"pnpm --filter demo dev\"",
     "build": "pnpm --filter tps-controls build",
     "build:demo": "pnpm --filter demo build",
+    "build:github": "pnpm run build && pnpm --filter demo build:github",
+    "deploy:github": "pnpm run build:github && echo '✅ Demo built for GitHub Pages! Push to main branch to deploy.'",
     "publish:package": "pnpm run build && pnpm --filter tps-controls publish",
     "test": "pnpm --filter '*' test",
     "lint": "eslint . --ext .ts,.tsx",
