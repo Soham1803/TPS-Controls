@@ -176,6 +176,104 @@ The Player component uses Rapier physics and provides several props to customize
 | `friction` | `number` | `0.5` | Surface friction (0-1) |
 | `linearDamping` | `number` | `0.1` | Movement damping |
 | `angularDamping` | `number` | `0.1` | Rotation damping |
+| `castShadow` | `boolean` | `false` | Whether the player casts shadows |
+| `receiveShadow` | `boolean` | `false` | Whether the player receives shadows |
+
+### Shadow Rendering
+
+Enable dynamic shadows for more realistic lighting:
+
+```tsx
+// Enable shadows in your Canvas
+<Canvas shadows>
+  {/* Add shadow-casting lights */}
+  <directionalLight 
+    position={[10, 15, 5]} 
+    intensity={1.2}
+    castShadow
+    shadow-mapSize-width={2048}    // Higher = better quality, lower performance
+    shadow-mapSize-height={2048}
+    shadow-camera-far={50}
+    shadow-camera-left={-25}      // Adjust these values to cover your scene
+    shadow-camera-right={25}      // Larger values = more area covered
+    shadow-camera-top={25}
+    shadow-camera-bottom={-25}
+    shadow-bias={-0.0001}         // Prevents shadow acne
+  />
+  
+  <Physics>
+    {/* Ground receives shadows */}
+    <mesh position={[0, -0.5, 0]} receiveShadow>
+      <planeGeometry args={[100, 100]} />
+      <meshStandardMaterial color="gray" />
+    </mesh>
+    
+    {/* Player casts and receives shadows */}
+    <Player 
+      castShadow={true}      // Player casts shadows
+      receiveShadow={true}   // Player receives shadows from other objects
+    />
+  </Physics>
+</Canvas>
+```
+
+**Shadow Configuration Tips:**
+- Use `shadow-bias={-0.0001}` to prevent shadow acne (dark artifacts)
+- The `shadow-camera-*` props define the area where shadows are rendered
+- Make them large enough to cover your playable area
+- Larger values = more area covered but lower shadow resolution
+- For a 100x100 ground plane, use values like `±25` to `±50`
+
+#### Advanced: AccumulativeShadows (Optional)
+
+For even higher quality, noise-free shadows, you can use Drei's `AccumulativeShadows`:
+
+```tsx
+import { AccumulativeShadows, RandomizedLight } from '@react-three/drei'
+
+<Canvas>
+  <ambientLight intensity={0.4} />
+  <directionalLight position={[0, 10, 5]} intensity={1.2} />
+  
+  <Physics>
+    {/* AccumulativeShadows for noise-free, high-quality shadows */}
+    <AccumulativeShadows 
+      temporal 
+      frames={60} 
+      alphaTest={0.85} 
+      color={'#000000'} 
+      colorBlend={0.5} 
+      opacity={0.8}
+      scale={20}
+      position={[0, 0.01, 0]}
+    >
+      <RandomizedLight 
+        amount={8} 
+        radius={10} 
+        ambient={0.5} 
+        intensity={1} 
+        position={[5, 5, -10]} 
+        bias={0.001}
+      />
+    </AccumulativeShadows>
+    
+    {/* Ground */}
+    <mesh position={[0, -0.5, 0]}>
+      <planeGeometry args={[100, 100]} />
+      <meshStandardMaterial color="gray" />
+    </mesh>
+    
+    {/* Player only needs castShadow with AccumulativeShadows */}
+    <Player castShadow={true} />
+  </Physics>
+</Canvas>
+```
+
+**Why AccumulativeShadows?**
+- ✅ **No flickering** - Stable, smooth shadows
+- ✅ **Higher quality** - Soft, realistic shadow edges  
+- ✅ **Noise-free** - Clean shadows without artifacts
+- ⚠️ **More complex** - Requires careful setup and positioning
 
 ### Animation Paths
 

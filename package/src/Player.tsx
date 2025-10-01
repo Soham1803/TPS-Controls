@@ -23,6 +23,7 @@ import { updateMovementPhysics } from './modules/player/physics'
 import { handleShooting } from './modules/player/shooting'
 import { createMuzzleFlashTexture } from './modules/player/textures'
 import { MOUSE_SENSITIVITY, MUZZLE_FLASH_LIGHT_DISTANCE } from './modules/player/constants'
+import './utils/preload' // Import to trigger preloading
 
 // Modify the Player component signature
 export function Player({
@@ -35,6 +36,8 @@ export function Player({
   friction = 0.5,
   linearDamping = 0.1,
   angularDamping = 0.1,
+  castShadow = false,
+  receiveShadow = false,
   ...props 
 }: PlayerProps) {
   const group = React.useRef<THREE.Group>(null)
@@ -357,10 +360,10 @@ export function Player({
         <CapsuleCollider rotation={[0, 0, 0]} args={colliderArgs} position={[0, 0.8, 0]} />
         <group rotation={[0, 0, 0]} ref={group} dispose={null}>
           <group name="Scene">
-            <group castShadow receiveShadow name="Armature" rotation={[0, 0, 0]} scale={0.01}>
+            <group castShadow={castShadow} receiveShadow={receiveShadow} name="Armature" rotation={[0, 0, 0]} scale={0.01}>
               <primitive object={nodes.mixamorigHips} />
-              <skinnedMesh frustumCulled={false} castShadow receiveShadow name="Alpha_Joints" geometry={nodes.Alpha_Joints.geometry} material={materials.Alpha_Joints_MAT} skeleton={nodes.Alpha_Joints.skeleton} />
-              <skinnedMesh frustumCulled={false} castShadow receiveShadow name="Alpha_Surface" geometry={nodes.Alpha_Surface.geometry} material={materials.Alpha_Body_MAT} skeleton={nodes.Alpha_Surface.skeleton} />
+              <skinnedMesh frustumCulled={false} castShadow={castShadow} receiveShadow={receiveShadow} name="Alpha_Joints" geometry={nodes.Alpha_Joints.geometry} material={materials.Alpha_Joints_MAT} skeleton={nodes.Alpha_Joints.skeleton} />
+              <skinnedMesh frustumCulled={false} castShadow={castShadow} receiveShadow={receiveShadow} name="Alpha_Surface" geometry={nodes.Alpha_Surface.geometry} material={materials.Alpha_Body_MAT} skeleton={nodes.Alpha_Surface.skeleton} />
             </group>
           </group>
         </group>
@@ -404,11 +407,3 @@ export function Player({
     </group>
   )
 }
-
-// Helper function to preload assets
-export function preloadPlayerAssets(modelPath = '/models/player.glb') {
-  useGLTF.preload(modelPath);
-}
-
-// Preload default assets
-preloadPlayerAssets();

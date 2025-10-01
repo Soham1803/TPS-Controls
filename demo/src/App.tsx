@@ -2,7 +2,8 @@ import React from 'react';
 import { KeyboardControls, OrbitControls } from "@react-three/drei"
 import { Canvas } from "@react-three/fiber"
 import { Player } from "tps-controls"
-import { Physics, RigidBody } from '@react-three/rapier';
+import { Physics } from '@react-three/rapier';
+import { Environment } from './Environment';
 
 function App() {
 
@@ -35,39 +36,35 @@ function App() {
             { name: 'jump', keys: ['Space'] },
         ], [])}
     >
-      <Canvas style={{ height: '100vh', width: '100vw', margin: '0' }} camera={{zoom: 2}}>
+      <Canvas 
+        style={{ height: '100vh', width: '100vw', margin: '0' }} 
+        camera={{zoom: 2}}
+        shadows
+      >
         <OrbitControls />
-        <ambientLight intensity={0.3} />
-        <directionalLight color={'orange'} position={[0, 10, 5]} intensity={1} />
-        <directionalLight color={'blue'} position={[5, 0, -10]} intensity={0.5} />
-        <gridHelper args={[100, 100]} />
+        <ambientLight intensity={0.1} />
+        <directionalLight 
+          color={'yellow'} 
+          position={[10, 15, 5]} 
+          intensity={0.5}
+          castShadow
+          shadow-mapSize-width={2048}
+          shadow-mapSize-height={2048}
+          shadow-camera-far={50}
+          shadow-camera-left={-25}
+          shadow-camera-right={25}
+          shadow-camera-top={25}
+          shadow-camera-bottom={-25}
+          shadow-bias={-0.0001}
+        />
+        <directionalLight color={'orange'} position={[5, 0, -10]} intensity={0.5} />
+        <gridHelper args={[50, 50]} />
         <Physics gravity={[0, -9.81, 0]} >
-          <RigidBody position={[0, 0, 0]} type="fixed" colliders="cuboid">
-            <mesh rotation={[-Math.PI/2, 0, 0]}>
-              <planeGeometry args={[100, 100]} />
-              <meshStandardMaterial color={'gray'} />
-            </mesh>
-          </RigidBody>
-          <RigidBody position={[5, 4, 0]} type="fixed" friction={0.5} colliders="cuboid">
-            <mesh>
-              <boxGeometry args={[10, 10, 1]} />
-              <meshStandardMaterial color={'blue'} />
-            </mesh>
-          </RigidBody>
-          {/* Player with default assets - for custom assets, you can use:
-          <Player 
-            modelPath="/models/your-character.glb"
-            animationPaths={{
-              idle: "/animations/your-idle.fbx",
-              walkForward: "/animations/your-walk.fbx",
-              // ... other animations
-            }}
-            audioPath="/sfx/your-shot.mp3"
-            mass={8}
-            friction={0.8}
-          />
-          */}
-          <Player />
+          {/* Import comprehensive shooting range environment */}
+          <Environment />
+          
+          {/* Player with shadow casting */}
+          <Player castShadow receiveShadow />
         </Physics>
       </Canvas>
     </KeyboardControls>
