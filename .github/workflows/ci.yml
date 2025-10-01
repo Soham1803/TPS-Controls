@@ -104,6 +104,6 @@ jobs:
         run: pnpm run build
       
       - name: Publish to NPM
-        run: pnpm run publish:package
+        run: pnpm --filter tps-controls publish --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
