@@ -5,6 +5,12 @@ import { Player } from "tps-controls"
 import { Physics } from '@react-three/rapier';
 import { Environment } from './Environment';
 
+// Get the correct asset path for GitHub Pages deployment
+const getAssetPath = (path: string) => {
+  const base = import.meta.env.BASE_URL || '/'
+  return base + path.replace(/^\//, '')
+}
+
 function App() {
 
 
@@ -13,7 +19,7 @@ function App() {
       <span
         style={{
           position: 'absolute',
-          backgroundImage: "url('/svgs/crosshair.svg')",
+          backgroundImage: `url('${getAssetPath('svgs/crosshair.svg')}')`,
           width: '50px',
           height: '50px',
           top: '50%',
@@ -64,7 +70,11 @@ function App() {
           <Environment />
           
           {/* Player with shadow casting */}
-          <Player castShadow receiveShadow />
+          <Player 
+            castShadow 
+            receiveShadow 
+            modelPath={getAssetPath('models/player.glb')}
+          />
         </Physics>
       </Canvas>
     </KeyboardControls>
