@@ -176,6 +176,45 @@ The Player component uses Rapier physics and provides several props to customize
 | `friction` | `number` | `0.5` | Surface friction (0-1) |
 | `linearDamping` | `number` | `0.1` | Movement damping |
 | `angularDamping` | `number` | `0.1` | Rotation damping |
+| `castShadow` | `boolean` | `false` | Whether the player casts shadows |
+| `receiveShadow` | `boolean` | `false` | Whether the player receives shadows |
+
+### Shadow Rendering
+
+Enable dynamic shadows for more realistic lighting:
+
+```tsx
+// Enable shadows in your Canvas
+<Canvas shadows>
+  {/* Add shadow-casting lights */}
+  <directionalLight 
+    position={[10, 10, 5]} 
+    intensity={1}
+    castShadow
+    shadow-mapSize-width={2048}    // Higher = better quality, lower performance
+    shadow-mapSize-height={2048}
+    shadow-camera-far={50}
+    shadow-camera-left={-10}
+    shadow-camera-right={10}
+    shadow-camera-top={10}
+    shadow-camera-bottom={-10}
+  />
+  
+  <Physics>
+    {/* Ground receives shadows */}
+    <mesh position={[0, -0.5, 0]} receiveShadow>
+      <planeGeometry args={[100, 100]} />
+      <meshStandardMaterial color="gray" />
+    </mesh>
+    
+    {/* Player casts and receives shadows */}
+    <Player 
+      castShadow={true}      // Player casts shadows
+      receiveShadow={true}   // Player receives shadows from other objects
+    />
+  </Physics>
+</Canvas>
+```
 
 ### Animation Paths
 

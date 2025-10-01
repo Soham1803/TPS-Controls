@@ -50,6 +50,10 @@ export interface PlayerProps extends React.ComponentProps<'group'> {
   friction?: number;
   linearDamping?: number;
   angularDamping?: number;
+  
+  // Shadow props
+  castShadow?: boolean;
+  receiveShadow?: boolean;
 }
 
 export interface PlayerState {

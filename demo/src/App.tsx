@@ -35,26 +35,42 @@ function App() {
             { name: 'jump', keys: ['Space'] },
         ], [])}
     >
-      <Canvas style={{ height: '100vh', width: '100vw', margin: '0' }} camera={{zoom: 2}}>
+      <Canvas 
+        style={{ height: '100vh', width: '100vw', margin: '0' }} 
+        camera={{zoom: 2}}
+        shadows
+      >
         <OrbitControls />
         <ambientLight intensity={0.3} />
-        <directionalLight color={'orange'} position={[0, 10, 5]} intensity={1} />
+        <directionalLight 
+          color={'orange'} 
+          position={[0, 10, 5]} 
+          intensity={1}
+          castShadow
+          shadow-mapSize-width={2048}
+          shadow-mapSize-height={2048}
+          shadow-camera-far={50}
+          shadow-camera-left={-10}
+          shadow-camera-right={10}
+          shadow-camera-top={10}
+          shadow-camera-bottom={-10}
+        />
         <directionalLight color={'blue'} position={[5, 0, -10]} intensity={0.5} />
         <gridHelper args={[100, 100]} />
         <Physics gravity={[0, -9.81, 0]} >
           <RigidBody position={[0, 0, 0]} type="fixed" colliders="cuboid">
-            <mesh rotation={[-Math.PI/2, 0, 0]}>
+            <mesh rotation={[-Math.PI/2, 0, 0]} receiveShadow>
               <planeGeometry args={[100, 100]} />
               <meshStandardMaterial color={'gray'} />
             </mesh>
           </RigidBody>
           <RigidBody position={[5, 4, 0]} type="fixed" friction={0.5} colliders="cuboid">
-            <mesh>
+            <mesh castShadow receiveShadow>
               <boxGeometry args={[10, 10, 1]} />
               <meshStandardMaterial color={'blue'} />
             </mesh>
           </RigidBody>
-          {/* Player with default assets - for custom assets, you can use:
+          {/* Player with shadows enabled - for custom assets, you can use:
           <Player 
             modelPath="/models/your-character.glb"
             animationPaths={{
@@ -65,9 +81,11 @@ function App() {
             audioPath="/sfx/your-shot.mp3"
             mass={8}
             friction={0.8}
+            castShadow={true}
+            receiveShadow={true}
           />
           */}
-          <Player />
+          <Player castShadow receiveShadow />
         </Physics>
       </Canvas>
     </KeyboardControls>
