@@ -224,57 +224,6 @@ Enable dynamic shadows for more realistic lighting:
 - Larger values = more area covered but lower shadow resolution
 - For a 100x100 ground plane, use values like `±25` to `±50`
 
-#### Advanced: AccumulativeShadows (Optional)
-
-For even higher quality, noise-free shadows, you can use Drei's `AccumulativeShadows`:
-
-```tsx
-import { AccumulativeShadows, RandomizedLight } from '@react-three/drei'
-
-<Canvas>
-  <ambientLight intensity={0.4} />
-  <directionalLight position={[0, 10, 5]} intensity={1.2} />
-  
-  <Physics>
-    {/* AccumulativeShadows for noise-free, high-quality shadows */}
-    <AccumulativeShadows 
-      temporal 
-      frames={60} 
-      alphaTest={0.85} 
-      color={'#000000'} 
-      colorBlend={0.5} 
-      opacity={0.8}
-      scale={20}
-      position={[0, 0.01, 0]}
-    >
-      <RandomizedLight 
-        amount={8} 
-        radius={10} 
-        ambient={0.5} 
-        intensity={1} 
-        position={[5, 5, -10]} 
-        bias={0.001}
-      />
-    </AccumulativeShadows>
-    
-    {/* Ground */}
-    <mesh position={[0, -0.5, 0]}>
-      <planeGeometry args={[100, 100]} />
-      <meshStandardMaterial color="gray" />
-    </mesh>
-    
-    {/* Player only needs castShadow with AccumulativeShadows */}
-    <Player castShadow={true} />
-  </Physics>
-</Canvas>
-```
-
-**Why AccumulativeShadows?**
-- ✅ **No flickering** - Stable, smooth shadows
-- ✅ **Higher quality** - Soft, realistic shadow edges  
-- ✅ **Noise-free** - Clean shadows without artifacts
-- ⚠️ **More complex** - Requires careful setup and positioning
-
 ### Animation Paths
 
 ```tsx
@@ -306,22 +255,6 @@ interface AnimationPaths {
 ### Audio (.mp3/.wav/.ogg)
 - Short duration shooting sound effect
 - Optimized file size for web delivery
-
-## 🎮 Controls
-            <boxGeometry args={[100, 1, 100]} />
-            <meshStandardMaterial color="gray" />
-          </mesh>
-          
-          {/* Player with controls */}
-          <Player position={[0, 1, 0]} />
-        </Physics>
-      </Canvas>
-    </div>
-  );
-}
-
-export default App;
-```
 
 ## 🎮 Controls
 
