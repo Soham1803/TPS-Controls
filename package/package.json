@@ -1,6 +1,6 @@
 {
   "name": "tps-controls",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Modern third-person shooter controls for React Three Fiber",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
